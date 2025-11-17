@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Модерация отзывов — Lumiere Secrète{% endblock %}
+
+{% block content %}
+<section class="profile-section manager-reviews">
+    <header class="manager-reviews__header">
+        <div>
+            <p class="eyebrow">Качество сервиса</p>
+            <h1>Модерация отзывов</h1>
+            <p class="muted">Проверяйте комментарии покупателей и оперативно реагируйте на проблемные ситуации.</p>
+        </div>
+        <div class="manager-reviews__stats">
+            <div>
+                <span class="muted text-xs uppercase">В очереди</span>
+                <strong>{{ pending_count }}</strong>
+            </div>
+            <div>
+                <span class="muted text-xs uppercase">Опубликовано</span>
+                <strong>{{ published_count }}</strong>
+            </div>
+            <div>
+                <span class="muted text-xs uppercase">Всего</span>
+                <strong>{{ all_count }}</strong>
+            </div>
+        </div>
+    </header>
+
+    <div class="review-tabs">
+        <a href="?status=pending" class="tab-pill {% if status_filter == 'pending' %}is-active{% endif %}">На модерации ({{ pending_count }})</a>
+        <a href="?status=published" class="tab-pill {% if status_filter == 'published' %}is-active{% endif %}">Опубликованные ({{ published_count }})</a>
+        <a href="?status=all" class="tab-pill {% if status_filter == 'all' %}is-active{% endif %}">Все ({{ all_count }})</a>
+    </div>
+
+    {% if reviews %}
+    <div class="manager-reviews__table-wrapper">
+        <table class="reviews-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Покупатель</th>
+                    <th>Оценка</th>
+                    <th>Комментарий</th>
+                    <th>Создан</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td>
+                        <strong>{{ review.product.name }}</strong>
+                    </td>
+                    <td>
+                        {{ review.user.get_full_name|default:review.user.username }}<br>
+                        <span class="muted">{{ review.user.email }}</span>
+                    </td>
+                    <td>
+                        <span class="review-rating">★ {{ review.rating|default:"—" }}</span>
+                    </td>
+                    <td>{{ review.comment|default:"Без текста" }}</td>
+                    <td>{{ review.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if review.is_public %}
+                        <span class="badge badge-success">Опубликован</span>
+                        {% else %}
+                        <span class="badge badge-warning">На модерации</span>
+                        {% endif %}
+                    </td>
+                    <td class="review-actions">
+                        <form method="post" action="{% url 'reports:manager_review_action' review.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <div class="review-actions__buttons">
+                                <button type="submit" name="action" value="approve" class="btn-primary btn-small" {% if review.is_public %}disabled{% endif %}>Опубликовать</button>
+                                <button type="submit" name="action" value="hide" class="btn-link">{% if review.is_public %}Скрыть{% else %}Оставить в очереди{% endif %}</button>
+                                <button type="submit" name="action" value="delete" class="btn-link text-red">Удалить</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">Отзывов для отображения в этой категории нет.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,338 @@
+:root {
+  --cream: #f1ece6;
+  --sand: #ddd5cd;
+  --taupe: #b6a697;
+  --wine: #7d4047;
+  --charcoal: #2e2e2e;
+  --ink: #121212;
+  --bg: var(--cream);
+  --panel: #ffffff;
+  --panel-alt: var(--sand);
+  --text: var(--charcoal);
+  --text-muted: #6a6059;
+  --link: var(--wine);
+  --border: rgba(0, 0, 0, 0.05);
+  --shadow: 0 15px 35px rgba(0,0,0,0.12);
+}
+
+:root[data-theme='dark'] {
+  --bg: var(--ink);
+  --panel: #1e1d1d;
+  --panel-alt: #2a2726;
+  --text: var(--cream);
+  --text-muted: rgba(241,236,230,0.75);
+  --link: var(--cream);
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 25px 50px rgba(0,0,0,0.45);
+}
+
+body, .module caption, .breadcrumbs {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+#header {
+  background: linear-gradient(120deg, var(--panel-alt), var(--panel));
+  color: var(--text);
+  padding: 1.6rem 4vw 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme='dark'] #header {
+  background: linear-gradient(120deg, var(--charcoal), var(--panel-alt));
+  color: var(--text);
+}
+
+.ls-admin-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ls-admin-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.2em;
+}
+
+.ls-admin-links a {
+  margin-left: 1rem;
+  color: var(--link);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ls-quick-actions {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.5rem 0 0.5rem 4vw;
+  background: transparent;
+}
+
+.ls-quick-actions a,
+.ls-quick-actions button {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  border: none;
+  background: var(--wine);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.ls-quick-actions a:hover,
+.ls-quick-actions button:hover {
+  opacity: 0.9;
+}
+
+.ls-user-panel {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.ls-user-panel a {
+  color: var(--link);
+}
+
+#content-main .module, .app-list .module {
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+[data-theme='dark'] #content-main .module,
+[data-theme='dark'] .app-list .module {
+  background: var(--panel);
+}
+
+.app-list .module caption {
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--text);
+}
+
+.object-tools a:link,
+.object-tools a:visited {
+  background: var(--wine);
+  border-radius: 999px;
+  border: none;
+  color: #fff;
+}
+
+.nav-global a {
+  font-weight: 500;
+  color: var(--link);
+}
+
+.dashboard #content a,
+.module table a,
+.change-list table a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.module table,
+.change-list table {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.module table th {
+  background: var(--panel-alt);
+  color: var(--text);
+}
+
+.module table td {
+  background: rgba(255,255,255,0.9);
+  color: var(--text);
+}
+
+[data-theme='dark'] .module table td {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.module table tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,0.7);
+}
+
+[data-theme='dark'] .module table tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,0.12);
+}
+
+.module table tbody tr:hover td {
+  background: rgba(125,64,71,0.08);
+}
+
+[data-theme='dark'] .module table tbody tr:hover td {
+  background: rgba(125,64,71,0.25);
+}
+
+.selector-chosen h2,
+.inline-group h2 {
+  background: var(--panel-alt);
+  color: var(--text);
+}
+
+.button,
+input[type=submit],
+input[type=button],
+.submit-row input {
+  background: var(--wine);
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.4rem;
+  color: #fff;
+}
+
+.button.default,
+.submit-row input.default {
+  background: var(--charcoal);
+  color: #fff;
+}
+
+.paginator,
+.actions {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+[data-theme='dark'] .paginator,
+[data-theme='dark'] .actions {
+  background: var(--panel);
+}
+
+.app-list,
+.dashboard #content {
+  background: transparent;
+}
+
+.breadcrumbs {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0 4vw 1rem;
+}
+
+.breadcrumbs a {
+  color: var(--link);
+}
+
+.module .addlink {
+  padding-left: 1.8rem;
+}
+
+/* Login page overrides */
+.login #container {
+  background: var(--panel);
+  border-radius: 32px;
+  padding: 3rem;
+  box-shadow: var(--shadow);
+}
+
+.login #header {
+  background: transparent;
+  text-align: center;
+}
+
+.login .submit-row input {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+[data-theme='dark'] .module caption,
+[data-theme='dark'] .dashboard #content,
+[data-theme='dark'] .login #container {
+  color: var(--text);
+}
+
+
+/* ---------------------------
+   Fix: link colors for light/dark themes
+   Place this at the end of admin/custom.css
+   --------------------------- */
+
+/* 1) Явно стилизуем ссылки в brand / user / global nav — переопределяем любую более специфичную admin-стилизацию */
+:root[data-theme="light"] .ls-admin-links a,
+:root[data-theme="light"] .ls-user-panel a,
+:root[data-theme="light"] .ls-quick-actions a.link-like, /* если вдруг есть ссылки, стилизованные как кнопки */
+:root[data-theme="light"] .nav-global a,
+:root[data-theme="light"] .breadcrumbs a,
+:root[data-theme="light"] #header a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Hover / focus states in light theme */
+:root[data-theme="light"] .ls-admin-links a:hover,
+:root[data-theme="light"] .ls-user-panel a:hover,
+:root[data-theme="light"] .nav-global a:hover,
+:root[data-theme="light"] .breadcrumbs a:hover,
+:root[data-theme="light"] #header a:hover {
+  color: var(--wine); /* акцентный цвет при наведении */
+  text-decoration: underline;
+}
+
+/* 2) Dark theme: links should be light (override if any admin defaults make them dark) */
+:root[data-theme="dark"] .ls-admin-links a,
+:root[data-theme="dark"] .ls-user-panel a,
+:root[data-theme="dark"] .ls-quick-actions a.link-like,
+:root[data-theme="dark"] .nav-global a,
+:root[data-theme="dark"] .breadcrumbs a,
+:root[data-theme="dark"] #header a {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .ls-admin-links a:hover,
+:root[data-theme="dark"] .ls-user-panel a:hover,
+:root[data-theme="dark"] .nav-global a:hover {
+  color: var(--panel-alt);
+  text-decoration: underline;
+}
+
+/* 3) Уточняем специфику для .ls-quick-actions: 
+   если там используются реальные <a> ссылки — лучше стилизовать отдельно, чтобы не конфликтовать с кнопками */
+.ls-quick-actions a {
+  /* если это ссылке нужно выглядеть как кнопка — оставляем текущий стиль (фон wine + белый текст).
+     если хочется, чтобы некоторые элементы в ls-quick-actions были просто ссылками, давай им класс .link-like */
+}
+
+/* 4) Защитное правило на случай, если стили Django Admin выше по специфичности (используем !important только здесь) */
+:root[data-theme="light"] .ls-admin-links a,
+:root[data-theme="light"] .ls-user-panel a,
+:root[data-theme="light"] .nav-global a {
+  color: var(--text) !important;
+}
+
+/* 5) Акцент у активной ссылки (опционально) */
+.ls-admin-links a.active,
+.ls-user-panel a.active,
+.nav-global a.active {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0.18rem;
+}
+
+/* 6) Убедимся, что кнопка переключения темы не наследует цвет ссылки */
+#theme-toggle {
+  color: inherit;
+  background: transparent;
+}
+
+/* 7) Если где-то в админке ссылки внутри .module или таблиц стали белыми в светлой теме — явный safe-guard */
+:root[data-theme="light"] .module a,
+:root[data-theme="light"] .change-list a,
+:root[data-theme="light"] .dashboard #content a {
+  color: var(--link);
+}
+

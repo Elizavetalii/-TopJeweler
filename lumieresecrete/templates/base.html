@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lumiere Secrète{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'catalog/catalog.css' %}?v=20251115">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="catalog-body {% if favorite_icon_style %}pref-favorite-{{ favorite_icon_style }}{% endif %} {% if theme_preference %}pref-theme-{{ theme_preference }}{% endif %}">
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a class="brand" href="{% url 'catalog_list' %}">Lumiere Secrète</a>
+            <nav class="nav-links">
+                {% if request.user.is_authenticated and is_privileged %}
+                    {% if is_manager %}
+                    <a href="{% url 'reports:manager_dashboard' %}">Панель менеджера</a>
+                    <a href="{% url 'reports:manager_stats' %}">Статистика</a>
+                    <a href="{% url 'reports:manager_reviews' %}">Отзывы</a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                    <a href="{% url 'admin:index' %}">Админка</a>
+                    <a href="{% url 'admin_tools:maintenance' %}">Резервные копии</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:profile' %}">Профиль</a>
+                {% else %}
+                    <a href="{% url 'catalog_list' %}">Каталог</a>
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'favorites_list' %}">Избранное</a>
+                        <a href="{% url 'orders:order_history' %}">Заказы</a>
+                        <a href="{% url 'accounts:profile' %}">Профиль</a>
+                    {% endif %}
+                    <a href="{% url 'view_cart' %}">Корзина</a>
+                {% endif %}
+            </nav>
+            <div class="auth-links">
+                {% if request.user.is_authenticated %}
+                    <span>Привет,&nbsp;{{ request.user.first_name|default:request.user.username }}</span>
+                    <form method="post" action="{% url 'accounts:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}">Войти</a>
+                    <a class="btn-primary small" href="{% url 'accounts:register' %}">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="flash-container">
+        {% for message in messages %}
+            <div class="flash flash-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block hero %}{% endblock %}
+
+    <main class="page-shell">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div>
+            <p class="brand">Lumiere Secrète</p>
+            <p>Создаём образы, которые становятся историей.</p>
+        </div>
+        <div class="footer-links">
+            <a href="mailto:contact@lumieresecrete.com">contact@lumieresecrete.com</a>
+            <span>+7 (900) 123-45-67</span>
+        </div>
+    </footer>
+
+    <div class="hotkey-cheatsheet" data-hotkey-cheatsheet hidden>
+        <div class="hotkey-cheatsheet__inner">
+            <div class="hotkey-cheatsheet__head">
+                <h3>Горячие клавиши</h3>
+                <button type="button" class="hotkey-cheatsheet__close" data-hotkey-close aria-label="Закрыть подсказку">×</button>
+            </div>
+            <ul>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> — Фокус на строке поиска.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd> — Перейти в каталог.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd> — Открыть избранное (после входа).</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> — Перейти в корзину.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd> — История заказов (после входа).</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> — Профиль пользователя.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> — Показать/скрыть это окно.</li>
+            </ul>
+            {% if is_manager %}
+            <h4>Менеджеру</h4>
+            <ul>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> — Панель менеджера.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> — Статистика и графики.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> — Модерация отзывов.</li>
+            </ul>
+            {% endif %}
+            {% if request.user.is_staff %}
+            <h4>Администратору</h4>
+            <ul>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> — Резервные копии.</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> — Админ-панель Django.</li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        window.hotkeyConfig = {
+            catalogUrl: "{% url 'catalog_list' %}",
+            favoritesUrl: {% if request.user.is_authenticated %}"{% url 'favorites_list' %}"{% else %}null{% endif %},
+            cartUrl: "{% url 'view_cart' %}",
+            ordersUrl: {% if request.user.is_authenticated %}"{% url 'orders:order_history' %}"{% else %}null{% endif %},
+            profileUrl: {% if request.user.is_authenticated %}"{% url 'accounts:profile' %}"{% else %}null{% endif %},
+            managerUrl: {% if is_manager %}"{% url 'reports:manager_dashboard' %}"{% else %}null{% endif %},
+            managerStatsUrl: {% if is_manager %}"{% url 'reports:manager_stats' %}"{% else %}null{% endif %},
+            managerReviewsUrl: {% if is_manager %}"{% url 'reports:manager_reviews' %}"{% else %}null{% endif %},
+            backupUrl: {% if request.user.is_staff %}"{% url 'admin_tools:maintenance' %}"{% else %}null{% endif %},
+            adminUrl: {% if request.user.is_staff %}"{% url 'admin:index' %}"{% else %}null{% endif %},
+        };
+    </script>
+    <script src="{% static 'catalog/ui.js' %}" defer></script>
+    <script src="{% static 'catalog/hotkeys.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

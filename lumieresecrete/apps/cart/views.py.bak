@@ -1,0 +1,108 @@
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponseBadRequest
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+
+# Попытаемся импортировать модель (алиасы уже добавлены в models.py)
+try:
+    from .models import CartItems, CartItem
+except Exception:
+    CartItems = None
+    CartItem = None
+
+# Попытаемся импортировать User и ProductVariant, но не критично, если их нет
+try:
+    from apps.accounts.models import User
+except Exception:
+    User = None
+try:
+    from apps.product_variants.models import ProductVariant
+except Exception:
+    ProductVariant = None
+
+@require_http_methods(['GET'])
+def cart_list(request):
+    """
+    Вернёт список элементов корзины для текущего пользователя.
+    Использует поле `user` у модели CartItem/CartItems (ORM имена), а не сырые колонki DB (UserID).
+    """
+    if CartItems is None and CartItem is None:
+        return JsonResponse({"items": []})
+    Model = CartItems or CartItem
+    if request.user.is_authenticated:
+        qs = Model.objects.filter(user=request.user)
+    else:
+        qs = Model.objects.none()
+    items = []
+    for it in qs:
+        items.append({
+            "id": getattr(it, 'order_item_id', getattr(it, 'pk', None)),
+            "product_variant": str(getattr(it, 'product_variant', None)),
+            "quantity": getattr(it, 'quantity', None),
+            "price": str(getattr(it, 'price', None)),
+        })
+    return JsonResponse({"items": items})
+
+@require_http_methods(['POST'])
+def cart_add(request):
+    """
+    Добавление в корзину — ожидаем JSON body: { "product_variant_id": int, "quantity": int }
+    Создаёт/увеличивает CartItem.user=request.user.
+    """
+    if CartItems is None and CartItem is None:
+        return HttpResponseNotFound("Cart model not available")
+    if not request.user.is_authenticated:
+        return HttpResponseBadRequest("Authentication required for adding to cart")
+    import json
+    try:
+        payload = json.loads(request.body.decode() or "{}")
+        pv_id = payload.get("product_variant_id")
+        quantity = int(payload.get("quantity", 1))
+    except Exception:
+        return HttpResponseBadRequest("Bad request body")
+    # get product_variant object if model available
+    pv = None
+    if ProductVariant is not None and pv_id is not None:
+        pv = ProductVariant.objects.filter(product_variant_id=pv_id).first() or ProductVariant.objects.filter(pk=pv_id).first()
+    Model = CartItems or CartItem
+    # try to find existing
+    obj, created = Model.objects.get_or_create(user=request.user, product_variant=pv, defaults={"quantity": quantity, "price": getattr(pv, "price", None)})
+    if not created:
+        obj.quantity = (obj.quantity or 0) + quantity
+        obj.save()
+    return JsonResponse({"id": getattr(obj, "order_item_id", obj.pk), "quantity": obj.quantity, "created": created})
+
+@require_http_methods(['POST'])
+def cart_remove(request, item_id=None):
+    """
+    Удаление элемента cart по id (order_item_id / pk)
+    """
+    if CartItems is None and CartItem is None:
+        return HttpResponseNotFound("Cart model not available")
+    if not request.user.is_authenticated:
+        return HttpResponseBadRequest("Authentication required")
+    Model = CartItems or CartItem
+    try:
+        obj = Model.objects.get(order_item_id=item_id) if hasattr(Model, 'order_item_id') else Model.objects.get(pk=item_id)
+        if obj.user != request.user:
+            return HttpResponseBadRequest("Not allowed")
+        obj.delete()
+        return JsonResponse({"deleted": True})
+    except Model.DoesNotExist:
+        return HttpResponseNotFound("Item not found")
+
+# --- backward-compatible wrappers (URLconf ожидает эти имена) ---
+# add_to_cart -> cart_add
+def add_to_cart(request):
+    return cart_add(request)
+
+# remove_from_cart -> cart_remove (urls обычно передаёт item_id)
+def remove_from_cart(request, item_id=None):
+    return cart_remove(request, item_id=item_id)
+
+# view_cart / get_cart -> cart_list
+def view_cart(request):
+    return cart_list(request)
+
+# alias names sometimes used
+def get_cart(request):
+    return cart_list(request)

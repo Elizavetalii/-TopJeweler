@@ -1,0 +1,31 @@
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Orders, Products, Stores
+from django.db.models import Sum
+from django.utils import timezone
+
+def sales_report(request):
+    """Generate a sales report for a specified period."""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if not start_date or not end_date:
+        return JsonResponse({'error': 'Please provide start_date and end_date.'}, status=400)
+
+    sales_data = Orders.objects.filter(
+        created_at__range=[start_date, end_date]
+    ).values('store__name').annotate(total_sales=Sum('total_amount'))
+
+    return JsonResponse(list(sales_data), safe=False)
+
+def product_report(request):
+    """Generate a report of products sold."""
+    product_data = Products.objects.annotate(total_sold=Sum('orderitems__quantity')).filter(total_sold__gt=0)
+
+    return render(request, 'reports/product_report.html', {'products': product_data})
+
+def store_report(request):
+    """Generate a report of store performance."""
+    store_data = Stores.objects.annotate(total_orders=Sum('orders__id')).filter(total_orders__gt=0)
+
+    return render(request, 'reports/store_report.html', {'stores': store_data})

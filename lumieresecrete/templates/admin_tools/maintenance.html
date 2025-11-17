@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Резервные копии — Lumiere Secrète{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="section-head">
+        <h2>Резервное копирование</h2>
+        <span class="muted">Доступно только администраторам</span>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {{ backup_form.as_p }}
+        <button type="submit" name="backup" class="btn-primary">Создать бэкап</button>
+    </form>
+</section>
+
+<section class="profile-section">
+    <div class="section-head">
+        <h2>Восстановление</h2>
+        <span class="muted">Загруженный JSON заменит текущие данные</span>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ restore_form.as_p }}
+        <button type="submit" name="restore" class="btn-link text-red">Восстановить</button>
+    </form>
+</section>
+{% endblock %}

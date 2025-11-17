@@ -1,0 +1,55 @@
+from django.test import TestCase
+from apps.product_variants.models import ProductVariant
+from apps.catalog.models import Products, Colors, Sizes, Stores
+
+class ProductVariantModelTest(TestCase):
+    def setUp(self):
+        self.store = Stores.objects.create(Name="Test Store", BusinessHours="9 AM - 9 PM")
+        self.color = Colors.objects.create(NameColor="Red", ColorCode="#FF0000")
+        self.size = Sizes.objects.create(Size="M")
+        self.product = Products.objects.create(Name="Test Product", CategoryID=None)
+
+    def test_create_product_variant(self):
+        variant = ProductVariant.objects.create(
+            ProductID=self.product,
+            ColorID=self.color,
+            SizeID=self.size,
+            Structure="Basic",
+            Price=19.99,
+            Photo="path/to/photo.jpg",
+            Description="A test product variant",
+            Quantity=100,
+            StoreID=self.store
+        )
+        self.assertEqual(variant.Price, 19.99)
+        self.assertEqual(variant.Quantity, 100)
+
+    def test_product_variant_str(self):
+        variant = ProductVariant.objects.create(
+            ProductID=self.product,
+            ColorID=self.color,
+            SizeID=self.size,
+            Structure="Basic",
+            Price=19.99,
+            Photo="path/to/photo.jpg",
+            Description="A test product variant",
+            Quantity=100,
+            StoreID=self.store
+        )
+        self.assertEqual(str(variant), f"{self.product.Name} - {self.color.NameColor} - {self.size.Size}")
+
+    def test_product_variant_quantity_update(self):
+        variant = ProductVariant.objects.create(
+            ProductID=self.product,
+            ColorID=self.color,
+            SizeID=self.size,
+            Structure="Basic",
+            Price=19.99,
+            Photo="path/to/photo.jpg",
+            Description="A test product variant",
+            Quantity=100,
+            StoreID=self.store
+        )
+        variant.Quantity = 50
+        variant.save()
+        self.assertEqual(variant.Quantity, 50)

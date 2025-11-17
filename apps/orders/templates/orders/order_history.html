@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Мои заказы — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Заказы</p>
+        <h1>История заказов</h1>
+        <p>Отслеживайте статус и состав своих заказов.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="orders-list">
+    {% if orders %}
+        {% for order in orders %}
+            <article class="order-card">
+                <header>
+                    <h3>Заказ №{{ order.id }}</h3>
+                    <span class="order-status">{{ order.status }}</span>
+                </header>
+                <p class="muted">Дата: {{ order.created_at }}</p>
+                <ul>
+                    {% for item in order.items %}
+                        <li>
+                            <strong>{{ item.name }}</strong>
+                            <span>{{ item.color }} · {{ item.size }}</span>
+                            <span>{{ item.quantity }} шт × {{ item.price }} ₽</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="product-price product-price--detail">Сумма: {{ order.total }} ₽</p>
+            </article>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">Пока нет оформленных заказов.</div>
+    {% endif %}
+</div>
+{% endblock %}

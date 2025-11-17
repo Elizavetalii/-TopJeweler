@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Оформление заказа — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+  <div class="hero-content">
+    <p class="eyebrow">Заказ</p>
+    <h1>Оформление заказа</h1>
+    <p>Проверьте товары, заполните данные получателя и подтвердите покупку.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<form id="promoCheckoutApply" method="post" action="{% url 'cart_apply_promo' %}" class="sr-only" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="checkout">
+  <input type="hidden" name="intent" value="apply">
+  <input type="hidden" name="promo" value="">
+</form>
+<form id="promoCheckoutClear" method="post" action="{% url 'cart_apply_promo' %}" class="sr-only" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="checkout">
+  <input type="hidden" name="intent" value="clear">
+</form>
+
+<div class="checkout-layout" data-checkout-page data-promo-endpoint="{% url 'cart_apply_promo' %}">
+  <div class="checkout-progress" aria-label="Этапы оформления">
+    <div class="checkout-step is-complete">
+      <span class="checkout-step__index">1</span>
+      <div>
+        <p class="checkout-step__title">Корзина</p>
+        <p class="checkout-step__hint" data-checkout-count>Выбрано {{ items|length }} позиций</p>
+      </div>
+    </div>
+    <div class="checkout-step is-active">
+      <span class="checkout-step__index">2</span>
+      <div>
+        <p class="checkout-step__title">Данные покупателя</p>
+        <p class="checkout-step__hint">Контакты и способ получения</p>
+      </div>
+    </div>
+    <div class="checkout-step">
+      <span class="checkout-step__index">3</span>
+      <div>
+        <p class="checkout-step__title">Оплата</p>
+        <p class="checkout-step__hint">Подтверждение заказа</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-meta">
+    <article>
+      <p class="checkout-meta__label">Поддержка</p>
+      <p class="checkout-meta__value">+7 (900) 123‑45‑67</p>
+      <span>Личный менеджер ответит в течение 5 минут</span>
+    </article>
+    <article>
+      <p class="checkout-meta__label">Доставка сегодня</p>
+      <p class="checkout-meta__value">от 2 часов</p>
+      <span>В пределах Москвы и доступных бутик‑точек</span>
+    </article>
+    <article>
+      <p class="checkout-meta__label">Самовывоз</p>
+      <p class="checkout-meta__value">Бесплатно</p>
+      <span>Выберите удобный бутик в шаге ниже</span>
+    </article>
+  </div>
+
+  <form method="post" class="checkout-grid" data-checkout-form>
+    {% csrf_token %}
+    {% if form_errors %}
+    <div class="checkout-alert">
+      {% for error in form_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="checkout-main">
+      <section class="checkout-card checkout-card--items" data-checkout-items>
+        <div class="checkout-card__head">
+          <h2>Товары в заказе</h2>
+          <p>{{ cart_summary.subtotal_display }}</p>
+        </div>
+        <div class="checkout-items">
+          {% for item in items %}
+          <article class="checkout-item" data-checkout-line data-line-id="{{ item.item_id }}" data-update-url="{{ item.update_url }}" data-remove-url="{{ item.remove_url }}">
+            <img src="{{ item.photo }}" alt="{{ item.name }}">
+            <div class="checkout-item__info">
+              <p class="checkout-item__name">
+                {{ item.name }}
+                {% if item.detail_url %}
+                <a href="{{ item.detail_url }}" class="checkout-item__link" target="_blank" rel="noopener">Подробнее</a>
+                {% endif %}
+              </p>
+              <p class="checkout-item__meta">{{ item.color }} · {{ item.size }}</p>
+              <p class="checkout-item__meta">Бутик: {{ item.store_label }}</p>
+              <div class="checkout-qty">
+                <button type="button" class="quantity-btn" data-line-control="decrease" {% if item.quantity <= 1 %}disabled{% endif %} aria-label="Уменьшить количество">−</button>
+                <span data-line-qty>{{ item.quantity }}</span>
+                <button type="button" class="quantity-btn" data-line-control="increase" aria-label="Увеличить количество">+</button>
+              </div>
+            </div>
+            <div class="checkout-item__total">
+              <p class="checkout-item__price">{{ item.price_display }}</p>
+              <p class="checkout-item__line" data-line-total>{{ item.line_total_display }}</p>
+              <button type="button" class="checkout-item__remove" data-remove-line aria-label="Удалить товар">Убрать</button>
+            </div>
+          </article>
+          {% empty %}
+          {% endfor %}
+          <p class="muted" data-checkout-empty {% if items %}hidden{% endif %}>Корзина пуста. Добавьте товары в каталогe.</p>
+        </div>
+      </section>
+
+      <section class="checkout-card checkout-card--details">
+        <div class="checkout-group">
+          <h2>Информация о получателе</h2>
+          <div class="form-grid">
+            <label>
+              <span>Имя</span>
+              <input name="first_name" value="{{ form_data.first_name }}" required>
+            </label>
+            <label>
+              <span>Фамилия</span>
+              <input name="last_name" value="{{ form_data.last_name }}" required>
+            </label>
+            <label>
+              <span>Телефон</span>
+              <input name="phone" value="{{ form_data.phone }}" inputmode="tel" maxlength="18" placeholder="+7 000 000-00-00" data-phone-input required>
+            </label>
+            <label>
+              <span>Комментарий</span>
+              <textarea name="comment" rows="3">{{ form_data.comment }}</textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="checkout-group" data-shipping-block>
+          <h2>Способ получения</h2>
+          <div class="radio-cards">
+            <label class="{% if form_data.shipping_method == 'delivery' %}is-active{% endif %}">
+              <input type="radio" name="shipping_method" value="delivery" {% if form_data.shipping_method == 'delivery' %}checked{% endif %} data-shipping-choice>
+              <div>
+                <p>Доставка</p>
+                <span>Курьер привезёт заказ по указанному адресу</span>
+              </div>
+            </label>
+            <label class="{% if form_data.shipping_method == 'pickup' %}is-active{% endif %}">
+              <input type="radio" name="shipping_method" value="pickup" {% if form_data.shipping_method == 'pickup' %}checked{% endif %} data-shipping-choice>
+              <div>
+                <p>Самовывоз</p>
+                <span>Заберите заказ в выбранном бутике</span>
+              </div>
+            </label>
+          </div>
+          <div class="form-grid" data-delivery-block{% if form_data.shipping_method == 'pickup' %} hidden{% endif %}>
+            <label>
+              <span>Город</span>
+              <input name="city" value="{{ form_data.city }}" data-delivery-field data-required="true">
+            </label>
+            <label>
+              <span>Адрес</span>
+              <input name="address" value="{{ form_data.address }}" placeholder="Улица, дом, квартира/офис" data-delivery-field data-required="true">
+            </label>
+          </div>
+          <div class="form-grid" data-pickup-block{% if form_data.shipping_method != 'pickup' %} hidden{% endif %}>
+            <label>
+              <span>Выберите бутик</span>
+              <select name="pickup_location" data-pickup-field data-required="true">
+                <option value="">Выберите бутик</option>
+                {% for store in pickup_choices %}
+                <option value="{{ store.id }}" {% if form_data.pickup_location == store.id|stringformat:'s' %}selected{% endif %}>{{ store.display }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="checkout-group">
+          <h2>Промокод</h2>
+          <div class="promo-block" data-promo-state>
+            <div class="promo-applied" data-promo-applied {% if not promo.is_applied %}hidden{% endif %}>
+              <span class="pill" data-promo-discount>{{ promo.discount_display }}</span>
+              <div>
+                <p>Промокод <span data-promo-code>{{ promo.code }}</span></p>
+                <span data-promo-description>{{ promo.description }}</span>
+              </div>
+              <button type="button" data-promo-clear aria-label="Очистить промокод">&times;</button>
+            </div>
+            <div class="promo-input" data-promo-form {% if promo.is_applied %}hidden{% endif %}>
+              <input name="promo_code" placeholder="Введите промокод" value="{{ promo.code }}" data-promo-input>
+              <button type="button" data-promo-apply>Применить</button>
+            </div>
+            <p class="promo-hint {% if promo.message %}{% if promo.recoverable %}is-warning{% else %}is-error{% endif %}{% endif %}" data-promo-message {% if not promo.message %}hidden{% endif %}>
+              {{ promo.message }}
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="checkout-side">
+      <section class="checkout-card checkout-card--summary" data-checkout-summary>
+        <div class="checkout-summary__badge">
+          <span>Ваш заказ</span>
+          <small>Все суммы пересчитываются мгновенно</small>
+        </div>
+        <div data-summary>
+          <h2>Итог</h2>
+          <dl>
+            <div>
+              <dt>Товары</dt>
+              <dd data-summary-subtotal>{{ cart_summary.subtotal_display }}</dd>
+            </div>
+            <div data-summary-discount-row class="{% if not cart_summary.discount_display %}is-hidden{% endif %}">
+              <dt>Скидка</dt>
+              <dd data-summary-discount>{{ cart_summary.discount_display|default:'—' }}</dd>
+            </div>
+            <div>
+              <dt>Доставка</dt>
+              <dd data-summary-shipping>{{ cart_summary.shipping_display }}</dd>
+            </div>
+            <div class="checkout-total">
+              <dt>Всего к оплате</dt>
+              <dd data-summary-total>{{ cart_summary.total_display }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="checkout-group">
+          <h2>Способ оплаты</h2>
+          <div class="radio-cards">
+            <label class="{% if form_data.payment_flow == 'now' %}is-active{% endif %}">
+              <input type="radio" name="payment_flow" value="now" data-payment-flow {% if form_data.payment_flow == 'now' %}checked{% endif %}>
+              <div>
+                <p>Оплатить сейчас</p>
+                <span>Банковской картой прямо на сайте</span>
+              </div>
+            </label>
+            <label class="{% if form_data.payment_flow == 'later' %}is-active{% endif %}">
+              <input type="radio" name="payment_flow" value="later" data-payment-flow {% if form_data.payment_flow == 'later' %}checked{% endif %}>
+              <div>
+                <p>Оплата при получении</p>
+                <span>Курьер или бутик подготовят терминал</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid" data-pay-now{% if form_data.payment_flow == 'later' %} hidden{% endif %}>
+          <label class="full card-preview">
+            <span>Данные карты</span>
+            <div class="card-preview__frame">
+              <div>
+                <p data-card-preview-number>{{ form_data.card_number|default:'0000 0000 0000 0000' }}</p>
+                <small>Действует до <span data-card-preview-expiry>{{ form_data.card_expiry|default:'MM/YY' }}</span></small>
+              </div>
+              <span data-card-preview-holder>{{ form_data.card_holder|default:'IVAN IVANOV' }}</span>
+            </div>
+          </label>
+          <label>
+            <span>Номер карты</span>
+            <input name="card_number" inputmode="numeric" pattern="[0-9 ]{12,23}" maxlength="23" placeholder="0000 0000 0000 0000" value="{{ form_data.card_number }}" data-card-number data-card-field data-required="true" {% if form_data.payment_flow != 'later' %}required{% endif %}>
+          </label>
+          <label>
+            <span>Имя на карте</span>
+            <input name="card_holder" class="uppercase" placeholder="IVAN IVANOV" value="{{ form_data.card_holder }}" data-card-holder data-card-field data-required="true" {% if form_data.payment_flow != 'later' %}required{% endif %}>
+          </label>
+          <label>
+            <span>Срок (ММ/ГГ)</span>
+            <input name="card_expiry" placeholder="08/28" value="{{ form_data.card_expiry }}" data-card-expiry data-card-field data-required="true" {% if form_data.payment_flow != 'later' %}required{% endif %}>
+          </label>
+          <label>
+            <span>CVV/CVC</span>
+            <input name="card_cvv" inputmode="numeric" maxlength="4" placeholder="123" value="{{ form_data.card_cvv }}" data-card-field data-required="true" {% if form_data.payment_flow != 'later' %}required{% endif %}>
+          </label>
+        </div>
+
+        <div class="form-grid" data-pay-later{% if form_data.payment_flow != 'later' %} hidden{% endif %}>
+          <label class="full">
+            <span>Как рассчитаться при получении</span>
+          </label>
+          <label class="option-inline">
+            <input type="radio" name="delivery_payment_method" value="card_on_delivery" {% if form_data.delivery_payment_method == 'card_on_delivery' %}checked{% endif %}>
+            <span>Банковской картой</span>
+          </label>
+          <label class="option-inline">
+            <input type="radio" name="delivery_payment_method" value="cash_on_delivery" {% if form_data.delivery_payment_method == 'cash_on_delivery' %}checked{% endif %}>
+            <span>Наличными</span>
+          </label>
+        </div>
+
+        <div class="checkout-actions">
+          <label class="checkbox-inline">
+            <input type="checkbox" name="agreement" {% if form_data.agreement %}checked{% endif %} required>
+            <span>Я подтверждаю заказ и принимаю <a href="#">условия программы лояльности</a>.</span>
+          </label>
+          <button type="submit" class="btn-primary large">Подтвердить заказ</button>
+          <p class="muted">Нажимая на кнопку, вы соглашаетесь с <a href="#">политикой конфиденциальности</a>.</p>
+        </div>
+      </section>
+
+      <section class="checkout-card checkout-card--note">
+        <h3>Обновления статусов</h3>
+        <ul class="checkout-timeline">
+          <li>
+            <span>Сборка заказа</span>
+            <small>Менеджер проверит вещи и отправит уведомление</small>
+          </li>
+          <li>
+            <span>Передача курьеру</span>
+            <small>Получите трек-номер в профиле и по e-mail</small>
+          </li>
+          <li>
+            <span>Доставка</span>
+            <small>Курьер позвонит за 30 минут до приезда</small>
+          </li>
+        </ul>
+      </section>
+    </aside>
+  </form>
+
+  <section class="checkout-trust" aria-label="Гарантии сервиса">
+    <article>
+      <h3>Безопасная оплата</h3>
+      <p>Соединение шифруется, мы не сохраняем реквизиты карты и отправляем электронный чек.</p>
+    </article>
+    <article>
+      <h3>Авторская доставка</h3>
+      <p>Курьеры Lumiere Secrète доставляют заказы аккуратно, отслеживание в профиле всегда доступно.</p>
+    </article>
+    <article>
+      <h3>Поддержка 24/7</h3>
+      <p>Личный стилист поможет изменить размер или адрес до передачи курьеру.</p>
+    </article>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'catalog/checkout.js' %}" defer></script>
+{% endblock %}

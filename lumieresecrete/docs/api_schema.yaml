@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  title: Lumieres Secrete API
+  description: API documentation for the Lumieres Secrete clothing store application.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - first_name
+                - last_name
+                - email
+                - password
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid input
+
+  /users/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: User logged in successfully
+        '401':
+          description: Invalid credentials
+
+  /products:
+    get:
+      summary: Get a list of products
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    price:
+                      type: number
+                      format: float
+
+  /orders:
+    post:
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product_variant_id:
+                        type: integer
+                      quantity:
+                        type: integer
+              required:
+                - user_id
+                - items
+      responses:
+        '201':
+          description: Order created successfully
+        '400':
+          description: Invalid input
+
+  /cart:
+    get:
+      summary: Get the user's cart
+      responses:
+        '200':
+          description: User's cart details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_variant_id:
+                          type: integer
+                        quantity:
+                          type: integer
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: float
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        total_amount:
+          type: number
+          format: float
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time

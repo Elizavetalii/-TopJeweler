@@ -1,0 +1,29 @@
+from django.http import HttpResponse
+import csv
+from .models import Orders, OrderItems
+
+def export_orders_to_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Order ID', 'User ID', 'Created At', 'Total Amount', 'Status'])
+
+    orders = Orders.objects.all()
+    for order in orders:
+        writer.writerow([order.OrderID, order.UserID, order.CreatedAt, order.TotalAmount, order.StatusID])
+
+    return response
+
+def export_order_items_to_csv(request, order_id):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="order_items_{order_id}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Order Item ID', 'Order ID', 'Product Variant ID', 'Quantity', 'Price'])
+
+    order_items = OrderItems.objects.filter(OrderID=order_id)
+    for item in order_items:
+        writer.writerow([item.OrderItemID, item.OrderID, item.ProductVariantID, item.Quantity, item.Price])
+
+    return response

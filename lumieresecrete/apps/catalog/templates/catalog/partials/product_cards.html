@@ -1,0 +1,68 @@
+{% for product in product_cards %}
+<article class="product-card" data-product-card>
+    <div class="product-card__media">
+        <img src="{{ product.photo }}" loading="lazy" alt="{{ product.name }}" data-primary-img>
+        {% if product.hover_photo %}
+        <img src="{{ product.hover_photo }}" loading="lazy" alt="{{ product.name }}" data-hover-img>
+        {% endif %}
+        <div class="product-card__badges">
+            {% if product.is_new %}<span class="badge badge-new">Новинка</span>{% endif %}
+            {% if product.has_sale %}<span class="badge badge-sale">Sale</span>{% endif %}
+            {% if not product.in_stock %}<span class="badge badge-out">Ожидаем</span>{% endif %}
+        </div>
+        <div class="product-card__actions">
+            <button
+                type="button"
+                class="favorite-btn {% if product.is_favorite %}is-active{% endif %}"
+                data-favorite-toggle
+                data-product-id="{{ product.id }}"
+                data-url="{{ product.favorite_url }}"
+                aria-pressed="{{ product.is_favorite|yesno:'true,false' }}"
+                aria-label="{% if product.is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+            >
+                <span class="heart-icon" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="quick-view-btn" data-quick-view-target data-product-id="{{ product.id }}" data-quick-url="{{ product.quick_view_url }}?format=json">Быстрый просмотр</button>
+        </div>
+    </div>
+    <div class="product-card__body">
+        <p class="product-category">{{ product.category }}</p>
+        <h3>{{ product.name }}</h3>
+        <p class="product-price">
+            {% if product.price_min %}
+                {% if product.price_max and product.price_max != product.price_min %}
+                    {{ product.price_min }} – {{ product.price_max }} ₽
+                {% else %}
+                    {{ product.price_min }} ₽
+                {% endif %}
+            {% else %}
+                Цена по запросу
+            {% endif %}
+        </p>
+        {% if product.colors %}
+        <div class="color-row">
+            {% for swatch in product.colors %}
+            <span class="color-chip" style="background-color: {{ swatch.code }}" title="{{ swatch.name }}"></span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if product.sizes %}
+        <div class="size-row">
+            {% for size in product.sizes %}
+            <span>{{ size }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if product.structures %}
+        <p class="muted">{{ product.structures|join:', ' }}</p>
+        {% endif %}
+    </div>
+    <div class="product-card__footer">
+        <a class="btn-primary" href="{{ product.detail_url }}">Подробнее</a>
+    </div>
+</article>
+{% empty %}
+<div class="empty-state">
+    <p>По выбранным фильтрам пока ничего не найдено.</p>
+</div>
+{% endfor %}

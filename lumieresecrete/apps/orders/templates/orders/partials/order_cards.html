@@ -1,0 +1,44 @@
+{% for order in orders %}
+<article class="order-card {% if order.matched_order %}order-card--highlight{% endif %}">
+    <header>
+        <div>
+            <h3>Заказ №{{ order.id }}</h3>
+            {% if order.store_name %}
+            <p class="muted text-xs">{{ order.store_name }}</p>
+            {% endif %}
+        </div>
+        <span class="order-status">{{ order.status }}</span>
+    </header>
+    <p class="muted">Дата: {{ order.created_at }}</p>
+    <p class="product-price product-price--detail">Сумма: {{ order.total }} ₽</p>
+    {% if order.matches %}
+    <div class="order-match-list">
+        <p class="muted text-xs uppercase">Совпадения</p>
+        <ul>
+            {% for match in order.matches %}
+            <li class="order-match">
+                <span>{{ match.name }}</span>
+                <span class="muted">{{ match.quantity }} шт · {{ match.subtotal }} ₽</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <details class="order-card__details" {% if order.matches %}open{% endif %}>
+        <summary>Состав заказа</summary>
+        <ul>
+            {% for item in order.items %}
+            <li class="order-item-line {% if item.highlight %}order-item-line--highlight{% endif %}">
+                <span>{{ item.name }}</span>
+                <span class="muted">{{ item.quantity }} шт · {{ item.subtotal }} ₽</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
+    <div class="order-card__actions">
+        <a class="btn-primary btn-small" href="{{ order.detail_url }}{% if order.match_target %}?focus={{ order.match_target }}{% endif %}">Подробнее</a>
+    </div>
+</article>
+{% empty %}
+<p class="muted">Заказы не найдены.</p>
+{% endfor %}

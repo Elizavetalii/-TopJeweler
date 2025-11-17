@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://user:password@db:5432/lumieresecrete
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=lumieresecrete
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  postgres_data:

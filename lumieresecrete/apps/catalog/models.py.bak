@@ -1,0 +1,67 @@
+# apps/catalog/models.py
+from django.db import models
+
+class Category(models.Model):
+    category_id = models.AutoField(primary_key=True, db_column='CategoryID')
+    name = models.CharField(max_length=255, db_column='Name')
+
+    class Meta:
+        db_table = 'Categories'
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    product_id = models.AutoField(primary_key=True, db_column='ProductID')
+    name = models.CharField(max_length=255, db_column='Name')
+    category = models.ForeignKey(
+        'catalog.Category',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='CategoryID',
+        related_name='products'
+    )
+
+    class Meta:
+        db_table = 'Products'
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+
+    def __str__(self):
+        return self.name
+
+
+class ProductVariant(models.Model):
+    variant_id = models.AutoField(primary_key=True, db_column='ProductVariantID')
+    product = models.ForeignKey(
+        'catalog.Product',
+        on_delete=models.CASCADE,
+        db_column='ProductID',
+        related_name='variants'
+    )
+    color = models.CharField(max_length=100, blank=True, null=True, db_column='Color')
+    size = models.CharField(max_length=100, blank=True, null=True, db_column='Size')
+    price = models.DecimalField(max_digits=10, decimal_places=2, db_column='Price')
+    photo = models.TextField(blank=True, null=True, db_column='Photo')
+    description = models.TextField(blank=True, null=True, db_column='Description')
+    quantity = models.IntegerField(default=0, db_column='Quantity')
+    store = models.ForeignKey(
+        'stores.Store',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='StoreID',
+        related_name='product_variants'
+    )
+
+    class Meta:
+        db_table = 'ProductVariant'
+        verbose_name = 'Product Variant'
+        verbose_name_plural = 'Product Variants'
+
+    def __str__(self):
+        return f"{self.product.name if self.product else 'No product'} - {self.size or ''} - {self.color or ''}"

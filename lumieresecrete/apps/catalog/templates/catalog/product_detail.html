@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero product-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Коллекция {{ product.category.name|default:"Signature" }}</p>
+        <h1>{{ product.name }}</h1>
+        <p>Многослойные фактуры, отточенные пропорции и безупречная посадка.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section
+    class="product-detail"
+    data-product-detail
+    data-cart-url="{{ cart_add_url }}"
+    data-login-url="{{ login_url }}"
+    data-can-add="{{ can_add_to_cart|yesno:'true,false' }}"
+    data-selected-variant="{% if selected_variant %}{{ selected_variant.id }}{% endif %}"
+    data-cart-update-template="{% url 'cart_update' 0 %}"
+>
+    <div class="product-detail__grid">
+        <div class="product-detail__media">
+            <div class="product-gallery" data-gallery>
+                <div class="product-gallery__thumbs" data-gallery-thumbs>
+                    <button class="gallery-thumb-nav is-hidden" type="button" data-thumb-prev aria-label="Предыдущее фото">‹</button>
+                    <div class="gallery-thumb-track" data-thumb-track>
+                        {% for image in gallery %}
+                        <button
+                            type="button"
+                            class="gallery-thumb {% if forloop.first %}is-active{% endif %}"
+                            data-gallery-thumb
+                            data-src="{{ image.url }}"
+                        >
+                            <img src="{{ image.url }}" alt="{{ image.alt|default:product.name }}">
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <button class="gallery-thumb-nav is-hidden" type="button" data-thumb-next aria-label="Следующее фото">›</button>
+                </div>
+                <div class="product-gallery__main">
+                    <img src="{{ primary_photo }}" alt="{{ gallery.0.alt|default:product.name }}" data-gallery-main loading="lazy">
+                </div>
+            </div>
+        </div>
+
+        <div class="product-detail__info">
+            <div class="product-detail__meta">
+                <span class="rating-pill">
+                    {% if reviews_summary.count %}
+                        ★ {{ reviews_summary.rating }} · {{ reviews_summary.count }} отзывов
+                    {% else %}
+                        ★ 0 · Пока нет отзывов
+                    {% endif %}
+                </span>
+                <button
+                    type="button"
+                    class="favorite-btn {% if is_favorite %}is-active{% endif %}"
+                    data-favorite-toggle
+                    data-product-id="{{ product.product_id }}"
+                    data-url="{{ favorite_toggle_url }}"
+                    aria-pressed="{{ is_favorite|yesno:'true,false' }}"
+                    aria-label="{% if is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+                >
+                    <span class="heart-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="product-detail__price" data-price-range>
+                {% if price_min %}
+                    {% if price_max and price_max != price_min %}
+                        <strong data-price-display>{{ price_min }} – {{ price_max }} ₽</strong>
+                    {% else %}
+                        <strong data-price-display>{{ price_min }} ₽</strong>
+                    {% endif %}
+                {% else %}
+                    <strong data-price-display>Цена по запросу</strong>
+                {% endif %}
+                <p class="muted">Наличие уточняется по выбранному варианту</p>
+            </div>
+
+            <div class="product-options">
+                {% if color_options %}
+                <div class="option-block">
+                    <div class="option-head">
+                        <span>Цвет</span>
+                        <span data-color-label>{% if selected_variant %}{{ selected_variant.color_name }}{% endif %}</span>
+                    </div>
+                    <div class="variant-swatches" role="radiogroup">
+                        {% for color in color_options %}
+                        <button
+                            type="button"
+                            class="swatch-btn {% if color.id == selected_color_id %}is-active{% endif %}"
+                            data-color-id="{{ color.id }}"
+                            data-available="{{ color.in_stock|yesno:'true,false' }}"
+                            style="--swatch-color: {{ color.code|default:'#7d4047' }}"
+                            aria-label="{{ color.name }}"
+                        ></button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if size_options %}
+                <div class="option-block">
+                    <div class="option-head">
+                        <span>Размер</span>
+                        <span data-size-label>{% if selected_variant %}{{ selected_variant.size_label }}{% endif %}</span>
+                    </div>
+                    <div class="size-pills" role="radiogroup">
+                        {% for size in size_options %}
+                        <button
+                            type="button"
+                            class="size-pill {% if not size.in_stock %}is-disabled{% endif %} {% if size.id == selected_size_id %}is-active{% endif %}"
+                            data-size-id="{{ size.id }}"
+                            {% if not size.in_stock %}disabled{% endif %}
+                        >
+                            {{ size.label }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if store_options %}
+                <div class="option-block">
+                    <div class="option-head">
+                        <span>Бутик</span>
+                        <span data-store-label>{% if selected_variant %}{{ selected_variant.store }}{% endif %}</span>
+                    </div>
+                    <div class="size-pills store-pills" role="radiogroup">
+                        {% for store in store_options %}
+                        <button
+                            type="button"
+                            class="size-pill store-pill {% if not store.in_stock %}is-disabled{% endif %} {% if store.id == selected_store_id %}is-active{% endif %}"
+                            data-store-key="{{ store.id }}"
+                            {% if not store.in_stock %}disabled{% endif %}
+                        >
+                            {{ store.label }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="product-actions">
+                <div class="quantity-stepper quantity-stepper--inline is-hidden" data-quantity-panel>
+                    <button type="button" data-step-down aria-label="Уменьшить">−</button>
+                    <input type="number" name="quantity" min="1" value="1" data-qty-input readonly>
+                    <button type="button" data-step-up aria-label="Увеличить">+</button>
+                </div>
+
+                <input type="hidden" name="product_variant_id" value="{% if selected_variant %}{{ selected_variant.id }}{% endif %}" data-variant-input>
+
+                {% if can_add_to_cart %}
+                <button type="button" class="btn-primary btn-wide" data-add-to-cart>
+                    Добавить в корзину
+                </button>
+                {% else %}
+                <a class="btn-primary btn-wide" href="{{ login_url }}">Войти, чтобы купить</a>
+                {% endif %}
+                <p class="muted" data-stock-hint>Выберите цвет и размер, чтобы проверить наличие.</p>
+                <p class="form-message" data-form-message></p>
+            </div>
+
+            <div class="product-specs">
+                <h3>Характеристики</h3>
+                <dl>
+                    {% for spec in specifications %}
+                    <div>
+                        <dt>{{ spec.label }}</dt>
+                        <dd{% if spec.key %} data-spec="{{ spec.key }}"{% endif %}>{{ spec.value }}</dd>
+                    </div>
+                    {% endfor %}
+                </dl>
+            </div>
+            <div class="product-specs product-specs--muted">
+                <h3>Детали и уход</h3>
+                <ul>
+                    {% for char in characteristics %}
+                    <li>
+                        <strong>{{ char.label }}:</strong>
+                        <span{% if char.key %} data-char="{{ char.key }}"{% endif %}>{{ char.value }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <section class="reviews" id="reviews">
+        <header class="reviews__header">
+            <div>
+                <h2>Отзывы</h2>
+                <p>
+                    {% if reviews_summary.count %}
+                        Средняя оценка {{ reviews_summary.rating }} из 5 — {{ reviews_summary.count }} отзывов
+                    {% else %}
+                        Пока нет отзывов — станьте первым!
+                    {% endif %}
+                </p>
+            </div>
+            <span class="rating-pill">★ {{ reviews_summary.rating }}</span>
+        </header>
+
+        {% if review_form %}
+        <form method="post" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="intent" value="add_review">
+            <div class="review-form__grid">
+                <label>
+                    {{ review_form.rating.label_tag }}
+                    {{ review_form.rating }}
+                </label>
+                <label>
+                    {{ review_form.variant.label_tag }}
+                    {{ review_form.variant }}
+                </label>
+            </div>
+            <label>
+                {{ review_form.comment.label_tag }}
+                {{ review_form.comment }}
+            </label>
+            {% if review_form.errors %}
+            <div class="form-errors">
+                {{ review_form.errors }}
+            </div>
+            {% endif %}
+            <div class="review-form__actions">
+                <button type="submit" class="btn-primary">Оставить отзыв</button>
+            </div>
+        </form>
+        {% elif existing_review %}
+        <p class="muted">Вы уже оставили отзыв для этого товара. Спасибо!</p>
+        {% elif not request.user.is_authenticated %}
+        <p class="muted">Пожалуйста, <a href="{{ login_url }}">войдите</a>, чтобы оставить отзыв.</p>
+        {% elif not can_review %}
+        <p class="muted">Оставлять отзыв могут только покупатели этого товара.</p>
+        {% endif %}
+
+        <div class="reviews__list">
+            {% for review in reviews %}
+            <article class="review-card">
+                <div class="review-card__header">
+                    <strong>
+                        {% if review.user.get_full_name %}{{ review.user.get_full_name }}{% else %}{{ review.user.username }}{% endif %}
+                    </strong>
+                    <span>{{ review.created_at|date:"d.m.Y" }}</span>
+                </div>
+                <div class="review-card__rating" aria-label="{{ review.rating }} из 5">
+                    {% for star in "12345"|make_list %}
+                        <span class="{% if forloop.counter <= review.rating %}is-full{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                <p>{{ review.comment|linebreaksbr }}</p>
+            </article>
+            {% empty %}
+            <p class="muted">Отзывов пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="related-products">
+        <header class="related-products__header">
+            <h2>Похожие изделия</h2>
+            <p class="muted">Вдохновение из той же коллекции</p>
+        </header>
+        <div class="products-grid">
+            {% for related in related_products %}
+            <article class="product-card related-card">
+                <div class="product-card__media">
+                    <img src="{{ related.photo }}" alt="{{ related.name }}" loading="lazy">
+                </div>
+                <div class="product-card__body">
+                    <h3>{{ related.name }}</h3>
+                    {% if related.price %}
+                    <p class="product-price">{{ related.price }} ₽</p>
+                    {% endif %}
+                </div>
+                <div class="product-card__footer">
+                    <a class="btn-primary" href="{{ related.detail_url }}">Подробнее</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="sticky-cta" data-sticky-cta>
+        <div>
+            <p>{{ product.name }}</p>
+            <strong data-sticky-price>
+                {% if price_min %}
+                    {% if price_max and price_max != price_min %}
+                        {{ price_min }} – {{ price_max }} ₽
+                    {% else %}
+                        {{ price_min }} ₽
+                    {% endif %}
+                {% else %}
+                    Цена по запросу
+                {% endif %}
+            </strong>
+        </div>
+        {% if can_add_to_cart %}
+        <button type="button" class="btn-primary btn-small" data-sticky-add>
+            Добавить в корзину
+        </button>
+        {% else %}
+        <a class="btn-primary" href="{{ login_url }}">Войти</a>
+        {% endif %}
+    </div>
+</section>
+
+{{ product_gallery|json_script:"product-gallery-fallback" }}
+{{ variant_data|json_script:"variant-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'catalog/product_detail.js' %}" defer></script>
+{% endblock %}

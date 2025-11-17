@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Аккаунт</p>
+        <h1>Создайте аккаунт</h1>
+        <p>Сохраняйте избранные товары и оформляйте покупки без ограничений.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <label>Имя {{ form.first_name }} {{ form.first_name.errors }}</label>
+        <label>Фамилия {{ form.last_name }} {{ form.last_name.errors }}</label>
+        <label>Email {{ form.email }} {{ form.email.errors }}</label>
+        <label>Пароль {{ form.password }} {{ form.password.errors }}</label>
+        <label>Повторите пароль {{ form.password_confirm }} {{ form.password_confirm.errors }}</label>
+        <button type="submit" class="btn-primary">Создать аккаунт</button>
+        <p class="muted">Уже есть аккаунт? <a href="{% url 'accounts:login' %}">Войдите</a></p>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'django_app'
+    static_configs:
+      - targets: ['localhost:8000']  # Adjust the target to your Django app's address
+    metrics_path: '/metrics'  # Adjust if you have a different metrics endpoint
+
+  - job_name: 'database'
+    static_configs:
+      - targets: ['localhost:5432']  # Adjust the target to your database address
+    metrics_path: '/metrics'  # Adjust if you have a different metrics endpoint
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'localhost:9093'  # Adjust the target to your Alertmanager address
+
+rule_files:
+  - "alert_rules.yml"  # Path to your alert rules file if you have one

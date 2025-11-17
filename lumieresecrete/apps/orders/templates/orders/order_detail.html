@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Заказ №{{ order_ctx.order.order_id }} — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Заказ</p>
+        <h1>Заказ №{{ order_ctx.order.order_id }}</h1>
+        <p>Отслеживайте статус, скачивайте чек и делитесь им удобным способом.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-screen">
+<div class="order-detail" data-order-detail data-share-endpoint="{{ share_url }}" data-receipt-url="{{ receipt_url }}">
+    <section class="order-detail__main">
+        <header class="order-detail__header">
+            <div>
+                <p class="muted">Статус</p>
+                <p class="order-detail__status">{{ order_ctx.order.status.name_status|default:"—" }}</p>
+                <p class="muted">Оформлен: {{ order_ctx.order.created_at|date:"d.m.Y H:i" }}</p>
+            </div>
+            <div class="order-detail__actions">
+                <a class="btn-primary" data-download-receipt href="{{ receipt_url }}">Скачать чек</a>
+                <button type="button" class="btn-link" data-share-trigger>Поделиться</button>
+                <form method="post" action="{{ repeat_url }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-link">Повторить заказ</button>
+                </form>
+                {% if order_ctx.can_cancel %}
+                <form method="post" action="{{ cancel_url }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-link">Отменить</button>
+                </form>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="order-meta">
+            <article class="order-meta__card">
+                <p class="order-meta__label">Номер заказа</p>
+                <strong>№{{ order_ctx.order.order_id }}</strong>
+            </article>
+            <article class="order-meta__card">
+                <p class="order-meta__label">Статус</p>
+                <span class="order-status-badge">{{ order_ctx.order.status.name_status|default:"—" }}</span>
+            </article>
+            <article class="order-meta__card">
+                <p class="order-meta__label">Сумма</p>
+                <strong>{{ order_ctx.total }} ₽</strong>
+            </article>
+            <article class="order-meta__card">
+                <p class="order-meta__label">Магазин</p>
+                <strong>{{ order_ctx.store }}</strong>
+            </article>
+        </div>
+
+        <div class="order-timeline">
+            {% for step in order_ctx.timeline %}
+            <div class="order-timeline__step {% if step.is_done %}is-done{% endif %}">
+                <span class="order-timeline__icon">{% if step.is_done %}✓{% else %}•{% endif %}</span>
+                <div>
+                    <span>{{ step.label }}</span>
+                    <time>{{ step.timestamp|date:"d.m.Y H:i" }}</time>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <section class="order-items">
+            <header>
+                <h2>Состав заказа</h2>
+                <p class="muted">{{ order_ctx.items|length }} позиций</p>
+            </header>
+            <div class="order-items__grid">
+            {% with focus_str=focus_target|default:''|stringformat:"s" %}
+                {% for item in order_ctx.items %}
+                    {% with item_str=item.product_id|stringformat:"s" %}
+                    <article class="order-item-card {% if focus_str and focus_str == item_str %}is-focused{% endif %}" id="order-item-{{ item.product_id }}">
+                        <div class="order-item-card__media">
+                            <img src="{{ item.photo|default:placeholder_image }}" alt="{{ item.name }}" loading="lazy">
+                        </div>
+                        <div class="order-item-card__body">
+                            <div>
+                                <h3>{{ item.name }}</h3>
+                                <p class="muted">{{ item.color }} · {{ item.size }}</p>
+                                <p class="muted">{{ item.quantity }} шт × {{ item.price }} ₽</p>
+                            </div>
+                            <div class="order-item-card__cta">
+                                <p class="product-price">{{ item.subtotal }} ₽</p>
+                                {% if item.detail_url %}
+                                <a class="btn-link" href="{{ item.detail_url }}">Перейти к товару</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                    {% endwith %}
+                {% empty %}
+                    <p>Нет данных о товарах.</p>
+                {% endfor %}
+            {% endwith %}
+            </div>
+        </section>
+    </section>
+
+    <aside class="order-detail__sidebar">
+        <div class="order-preview">
+            <p class="muted text-xs uppercase">Чек</p>
+            <div class="order-preview__totals">
+                <div class="order-preview__line">
+                    <span>Сумма товаров</span>
+                    <strong>{{ order_ctx.items_total }} ₽</strong>
+                </div>
+                {% if order_ctx.discount %}
+                <div class="order-preview__line">
+                    <span>Скидка{% if order_ctx.promo_code %} ({{ order_ctx.promo_code }}){% endif %}</span>
+                    <strong>-{{ order_ctx.discount }} ₽</strong>
+                </div>
+                {% endif %}
+                <div class="order-preview__line is-total">
+                    <span>К оплате</span>
+                    <strong>{{ order_ctx.total }} ₽</strong>
+                </div>
+            </div>
+            <p class="muted">{{ order_ctx.order.created_at|date:"d.m.Y H:i" }}</p>
+            <div class="order-preview__qr">
+                <span>QR появится в PDF</span>
+            </div>
+            <a class="btn-primary btn-small" href="{{ receipt_url }}?inline=1">Открыть онлайн</a>
+        </div>
+    </aside>
+</div>
+</div>
+
+<div class="order-share-modal" data-share-modal hidden>
+    <div class="order-share-modal__content" role="dialog" aria-modal="true" aria-label="Поделиться заказом">
+        <button type="button" class="order-share-modal__close" data-share-close aria-label="Закрыть">×</button>
+        <h3>Поделиться чеком</h3>
+        <p class="muted">Выберите канал, мы подготовим ссылку.</p>
+        <div class="order-share-options">
+            <button type="button" data-share-option="link">Скопировать ссылку</button>
+            <button type="button" data-share-option="telegram">Telegram</button>
+            <button type="button" data-share-option="vk">VK</button>
+            <button type="button" data-share-option="facebook">Facebook</button>
+            <button type="button" data-share-option="email">Email</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'orders/orders.js' %}" defer></script>
+{% endblock %}

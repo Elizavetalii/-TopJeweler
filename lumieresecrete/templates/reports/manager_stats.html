@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика и аналитика — Lumiere Secrète{% endblock %}
+
+{% block content %}
+<section class="profile-section manager-stats">
+    <header class="manager-stats__header">
+        <div>
+            <p class="eyebrow">Аналитика</p>
+            <h1>Расширенная статистика</h1>
+            <p class="muted">Период с {{ filters.start }} по {{ filters.end }}. Используйте фильтры, чтобы уточнить выборку.</p>
+        </div>
+        <div class="manager-stats__quicklinks">
+            <a class="btn-link" href="{% url 'reports:manager_dashboard' %}">К сводке</a>
+            <a class="btn-link" href="{% url 'reports:manager_reviews' %}">К отзывам</a>
+            <a class="btn-link" href="{% url 'accounts:profile' %}">Профиль</a>
+        </div>
+    </header>
+
+    <form method="get" class="profile-form dashboard-filters" id="manager-stats-filters">
+        <div class="form-grid">
+            <label>
+                <span>Дата от</span>
+                <input type="date" name="start" value="{{ filters.start }}">
+            </label>
+            <label>
+                <span>Дата до</span>
+                <input type="date" name="end" value="{{ filters.end }}">
+            </label>
+            <label>
+                <span>Быстрый период</span>
+                <select name="period">
+                    {% for key, option in period_choices.items %}
+                    <option value="{{ key }}" {% if filters.period == key %}selected{% endif %}>{{ option.0 }}</option>
+                    {% endfor %}
+                    <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>Вручную</option>
+                </select>
+            </label>
+            <label>
+                <span>Категория</span>
+                <select name="category">
+                    <option value="">Все категории</option>
+                    {% for category in category_options %}
+                    <option value="{{ category.category_id }}" {% if filters.category == category.category_id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Магазин</span>
+                <select name="store">
+                    <option value="">Все магазины</option>
+                    {% for store in store_options %}
+                    <option value="{{ store.store_id }}" {% if filters.store == store.store_id|stringformat:'s' %}selected{% endif %}>{{ store.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="profile-form__actions">
+            <button type="submit" class="btn-primary">Применить</button>
+            <a class="btn-link" href="{% url 'reports:manager_stats' %}">Сбросить</a>
+        </div>
+    </form>
+    <form method="get" action="{% url 'reports:manager_export' %}" class="export-form export-form--inline">
+        <input type="hidden" name="start" value="{{ filters.start }}">
+        <input type="hidden" name="end" value="{{ filters.end }}">
+        <input type="hidden" name="period" value="{{ filters.period }}">
+        <input type="hidden" name="category" value="{{ filters.category }}">
+        <input type="hidden" name="store" value="{{ filters.store }}">
+        <label>Экспорт
+            <select name="format">
+                <option value="csv" {% if filters.export_format == 'csv' %}selected{% endif %}>CSV</option>
+                <option value="xlsx" {% if filters.export_format == 'xlsx' %}selected{% endif %}>Excel</option>
+            </select>
+        </label>
+        <button type="submit" class="btn-link">Скачать</button>
+    </form>
+    <button type="button" class="btn-link chart-download-all" data-chart-download-all>Скачать все графики</button>
+
+    <div class="chart-grid chart-grid--double">
+        <article class="profile-card chart-card chart-card--tall">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Статусы заказов</h3>
+                    <p class="muted">Какие этапы занимают больше всего заказов</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="statusChart">Скачать</button>
+            </div>
+            <canvas id="statusChart" data-chart-name="Статусы заказов" aria-label="График по статусам заказов" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Выручка по категориям</h3>
+                    <p class="muted">Топ-10 направлений по обороту</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="categoryChart">Скачать</button>
+            </div>
+            <canvas id="categoryChart" data-chart-name="Категории" aria-label="График по категориям" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Магазины</h3>
+                    <p class="muted">Сравнение точек продаж</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="storeChart">Скачать</button>
+            </div>
+            <canvas id="storeChart" data-chart-name="Магазины" aria-label="График по магазинам" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Размерная сетка</h3>
+                    <p class="muted">Какие размеры заказывают чаще</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="sizeChart">Скачать</button>
+            </div>
+            <canvas id="sizeChart" data-chart-name="Размеры" aria-label="График по размерам" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card chart-card--wide">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Топ товаров</h3>
+                    <p class="muted">Лидеры по выручке и количеству</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="productChart">Скачать</button>
+            </div>
+            <canvas id="productChart" data-chart-name="Топ товаров" aria-label="График по топ товарам" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card chart-card--wide">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Динамика заказов</h3>
+                    <p class="muted">Последние оформленные заказы и их суммы</p>
+                </div>
+                    <button type="button" class="chart-card__action" data-chart-download="ordersChart">Скачать</button>
+            </div>
+            <canvas id="ordersChart" data-chart-name="Динамика заказов" aria-label="График по сумме заказов" role="img"></canvas>
+        </article>
+
+        <article class="profile-card chart-card chart-card--full">
+            <div class="chart-card__header">
+                <div class="chart-card__header-inner">
+                    <h3>Выручка по дням</h3>
+                    <p class="muted">Сумма заказов и количество по датам</p>
+                </div>
+                <button type="button" class="chart-card__action" data-chart-download="dailyChart">Скачать</button>
+            </div>
+            <canvas id="dailyChart" data-chart-name="Выручка по дням" aria-label="График по выручке по дням" role="img"></canvas>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{{ chart_payload|json_script:"chart-payload" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const payloadNode = document.getElementById('chart-payload');
+    if (!payloadNode) {
+        return;
+    }
+    const payload = JSON.parse(payloadNode.textContent || '{}');
+    const palette = [
+        '#7d4047',
+        '#c39c5f',
+        '#4d4d4d',
+        '#b36a5e',
+        '#5b7f8c',
+        '#d4b483',
+        '#7c9eb2',
+        '#9c6b99',
+        '#ff9f68',
+        '#6f9f77'
+    ];
+
+    const chartConfigs = [
+        {
+            id: 'statusChart',
+            type: 'doughnut',
+            dataKey: 'status',
+            builder: (dataset) => ({
+                type: 'doughnut',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        data: dataset.map(item => item.value),
+                        backgroundColor: palette,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            })
+        },
+        {
+            id: 'categoryChart',
+            type: 'bar',
+            dataKey: 'categories',
+            builder: (dataset) => ({
+                type: 'bar',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        label: 'Выручка, ₽',
+                        data: dataset.map(item => item.value),
+                        backgroundColor: palette[0]
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            })
+        },
+        {
+            id: 'storeChart',
+            type: 'bar',
+            dataKey: 'stores',
+            builder: (dataset) => ({
+                type: 'bar',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        label: 'Выручка, ₽',
+                        data: dataset.map(item => item.value),
+                        backgroundColor: palette[1]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            })
+        },
+        {
+            id: 'sizeChart',
+            type: 'bar',
+            dataKey: 'sizes',
+            builder: (dataset) => ({
+                type: 'bar',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        label: 'Количество',
+                        data: dataset.map(item => item.value),
+                        backgroundColor: palette[2]
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            })
+        },
+        {
+            id: 'productChart',
+            type: 'bar',
+            dataKey: 'products',
+            builder: (dataset) => ({
+                type: 'bar',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        label: 'Выручка, ₽',
+                        data: dataset.map(item => item.value),
+                        backgroundColor: palette[3]
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterBody(items) {
+                                    const index = items[0].dataIndex;
+                                    const count = dataset[index]?.count ?? 0;
+                                    return `Кол-во: ${count}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        },
+        {
+            id: 'ordersChart',
+            type: 'line',
+            dataKey: 'orders',
+            builder: (dataset) => ({
+                type: 'line',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [{
+                        label: 'Сумма заказа, ₽',
+                        data: dataset.map(item => item.value),
+                        borderColor: palette[0],
+                        backgroundColor: 'rgba(125, 64, 71, 0.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            })
+        },
+        {
+            id: 'dailyChart',
+            type: 'line',
+            dataKey: 'daily',
+            builder: (dataset) => ({
+                type: 'line',
+                data: {
+                    labels: dataset.map(item => item.label),
+                    datasets: [
+                        {
+                            label: 'Выручка, ₽',
+                            data: dataset.map(item => item.value),
+                            borderColor: palette[0],
+                            backgroundColor: 'rgba(125, 64, 71, 0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Кол-во заказов',
+                            data: dataset.map(item => item.count),
+                            borderColor: palette[4],
+                            backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    stacked: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            })
+        }
+    ];
+
+    chartConfigs.forEach(({ id, dataKey, builder }) => {
+        const container = document.getElementById(id);
+        if (!container) {
+            return;
+        }
+        const dataset = payload[dataKey] || [];
+        if (!dataset.length) {
+            container.closest('.chart-card').classList.add('is-empty');
+            const trigger = document.querySelector(`[data-chart-download="${id}"]`);
+            if (trigger) {
+                trigger.disabled = true;
+            }
+            return;
+        }
+        const config = builder(dataset);
+        new Chart(container, config);
+    });
+
+    const downloadCanvas = (canvas, name) => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.download = `${name}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    document.querySelectorAll('[data-chart-download]').forEach(button => {
+        button.addEventListener('click', () => {
+            const chartId = button.dataset.chartDownload;
+            const canvas = document.getElementById(chartId);
+            if (!canvas || button.disabled) {
+                return;
+            }
+            const name = canvas.dataset.chartName || chartId;
+            downloadCanvas(canvas, name);
+        });
+    });
+
+    const downloadAll = document.querySelector('[data-chart-download-all]');
+    if (downloadAll) {
+        downloadAll.addEventListener('click', () => {
+            const canvases = document.querySelectorAll('.chart-grid canvas');
+            canvases.forEach(canvas => {
+                const card = canvas.closest('.chart-card');
+                if (card && card.classList.contains('is-empty')) {
+                    return;
+                }
+                const name = canvas.dataset.chartName || canvas.id;
+                downloadCanvas(canvas, name);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

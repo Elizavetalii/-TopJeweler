@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Панель менеджера — Lumiere Secrète{% endblock %}
+
+{% block content %}
+<section class="profile-section manager-dashboard">
+    <form method="get" class="profile-form dashboard-filters" id="manager-dashboard-filters">
+        <div class="form-grid">
+            <label>
+                <span>Дата от</span>
+                <input type="date" name="start" value="{{ filters.start }}">
+            </label>
+            <label>
+                <span>Дата до</span>
+                <input type="date" name="end" value="{{ filters.end }}">
+            </label>
+            <label>
+                <span>Быстрый период</span>
+                <select name="period">
+                    {% for key, option in period_choices.items %}
+                    <option value="{{ key }}" {% if filters.period == key %}selected{% endif %}>{{ option.0 }}</option>
+                    {% endfor %}
+                    <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>Вручную</option>
+                </select>
+            </label>
+            <label>
+                <span>Категория</span>
+                <select name="category">
+                    <option value="">Все категории</option>
+                    {% for category in category_options %}
+                    <option value="{{ category.category_id }}" {% if filters.category == category.category_id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Магазин</span>
+                <select name="store">
+                    <option value="">Все магазины</option>
+                    {% for store in store_options %}
+                    <option value="{{ store.store_id }}" {% if filters.store == store.store_id|stringformat:'s' %}selected{% endif %}>{{ store.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="profile-form__actions">
+            <button type="submit" class="btn-primary">Применить</button>
+            <a class="btn-link" href="{% url 'reports:manager_dashboard' %}">Сбросить</a>
+        </div>
+    </form>
+    <form method="get" action="{% url 'reports:manager_export' %}" class="export-form export-form--inline">
+        <input type="hidden" name="start" value="{{ filters.start }}">
+        <input type="hidden" name="end" value="{{ filters.end }}">
+        <input type="hidden" name="period" value="{{ filters.period }}">
+        <input type="hidden" name="category" value="{{ filters.category }}">
+        <input type="hidden" name="store" value="{{ filters.store }}">
+        <label>Экспорт
+            <select name="format">
+                <option value="csv" {% if filters.export_format == 'csv' %}selected{% endif %}>CSV</option>
+                <option value="xlsx" {% if filters.export_format == 'xlsx' %}selected{% endif %}>Excel</option>
+            </select>
+        </label>
+        <button type="submit" class="btn-link">Скачать</button>
+    </form>
+    <div class="manager-utility-links">
+        <a class="btn-link" href="{% url 'accounts:profile' %}">Настройки профиля</a>
+        <a class="btn-link" href="{% url 'reports:manager_stats' %}">Расширенная аналитика</a>
+    </div>
+
+    <div class="dashboard-cards">
+        <article class="profile-card">
+            <p class="muted text-xs uppercase">Выручка</p>
+            <h2>{{ order_summary.revenue }} ₽</h2>
+            <p class="muted">за период {{ filters.period_label }}</p>
+        </article>
+        <article class="profile-card">
+            <p class="muted text-xs uppercase">Заказы</p>
+            <h2>{{ order_summary.count }}</h2>
+            <p class="muted">за выбранный диапазон</p>
+        </article>
+        <article class="profile-card">
+            <p class="muted text-xs uppercase">Новые пользователи</p>
+            <h2>{{ user_activity.new }}</h2>
+            <p class="muted">Активных: {{ user_activity.active }}</p>
+        </article>
+    </div>
+
+    {% if view_snapshots.order_summary %}
+    <section class="profile-section">
+        <h3>Последние заказы (из представления)</h3>
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Клиент</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in view_snapshots.order_summary %}
+                <tr>
+                    <td>#{{ row.0 }}</td>
+                    <td>{{ row.1|default:"—" }}</td>
+                    <td>{{ row.2 }} ₽</td>
+                    <td>{{ row.3|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+
+    <div class="dashboard-grid">
+        <section class="profile-section">
+            <h3>Топ товаров</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Кол-во</th>
+                        <th>Выручка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in product_stats|slice:":8" %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.revenue }} ₽</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="muted">Нет продаж за выбранный период.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section class="profile-section">
+            <h3>Категории</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Категория</th>
+                        <th>Кол-во</th>
+                        <th>Выручка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in category_stats|slice:":8" %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.revenue }} ₽</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="muted">Нет данных.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section class="profile-section">
+            <h3>Последние заказы</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Дата</th>
+                        <th>Магазин</th>
+                        <th>Статус</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.created|date:"d.m.Y H:i" }}</td>
+                        <td>{{ order.store }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.total }} ₽</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="muted">Недавних заказов нет.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="dashboard-grid">
+        <section class="profile-section">
+            <h3>Размеры</h3>
+            <ul class="dashboard-list">
+                {% for size, qty in size_stats|slice:":10" %}
+                <li><strong>{{ size }}</strong> — {{ qty }} шт.</li>
+                {% empty %}
+                <li class="muted">Нет данных.</li>
+                {% endfor %}
+            </ul>
+        </section>
+        <section class="profile-section">
+            <h3>Магазины</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Магазин</th>
+                        <th>Заказы</th>
+                        <th>Выручка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for store in store_stats|slice:":6" %}
+                    <tr>
+                        <td>{{ store.name }}</td>
+                        <td>{{ store.orders }}</td>
+                        <td>{{ store.revenue }} ₽</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="muted">Нет данных.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section class="profile-section">
+            <h3>Статусы заказов</h3>
+            <ul class="dashboard-list">
+                {% for status, count in status_breakdown %}
+                <li><strong>{{ status }}</strong> — {{ count }}</li>
+                {% empty %}
+                <li class="muted">Заказов нет.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    <section class="profile-section">
+        <h3>Низкие остатки</h3>
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Размер</th>
+                    <th>Магазин</th>
+                    <th>Остаток</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variant in inventory %}
+                <tr>
+                    <td>{{ variant.product.name }}</td>
+                    <td>{{ variant.size.size|default:'One Size' }}</td>
+                    <td>{{ variant.store.name|default:'—' }}</td>
+                    <td>{{ variant.quantity|default:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="muted">Все остатки в порядке.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="profile-section">
+        <h3>Отзывы, ожидающие модерации</h3>
+        {% if pending_reviews %}
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Пользователь</th>
+                    <th>Оценка</th>
+                    <th>Комментарий</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in pending_reviews %}
+                <tr>
+                    <td>{{ review.product.name }}</td>
+                    <td>{{ review.user.get_full_name|default:review.user.username }}</td>
+                    <td>★ {{ review.rating }}</td>
+                    <td>{{ review.comment|truncatechars:120 }}</td>
+                    <td>
+                        <form method="post" action="{% url 'reports:manager_review_action' review.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn-primary btn-small">Опубликовать</button>
+                            <button type="submit" name="action" value="hide" class="btn-link">Скрыть</button>
+                            <button type="submit" name="action" value="delete" class="btn-link text-red">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">Новых отзывов для модерации нет.</p>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

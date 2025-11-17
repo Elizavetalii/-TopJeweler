@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Расширенный поиск заказов — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Заказы</p>
+        <h1>Расширенный поиск</h1>
+        <p>Ищите заказы по товарам, параметрам и периодам.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="orders-search">
+    <form method="get" class="orders-search-form orders-search-form--advanced">
+        <label>
+            <span>Название товара</span>
+            <input type="text" name="product_name" value="{{ filters.product_name }}" placeholder="Колье, серьги...">
+        </label>
+        <label>
+            <span>Номер заказа / артикул</span>
+            <input type="text" name="article" value="{{ filters.article }}" placeholder="123 или SKU">
+        </label>
+        <label>
+            <span>Бренд / коллекция</span>
+            <input type="text" name="brand" value="{{ filters.brand }}">
+        </label>
+        <label>
+            <span>Цвет</span>
+            <input type="text" name="color" value="{{ filters.color }}">
+        </label>
+        <label>
+            <span>Размер</span>
+            <input type="text" name="size" value="{{ filters.size }}">
+        </label>
+        <label>
+            <span>Сумма от</span>
+            <input type="number" step="0.01" name="price_min" value="{{ filters.price_min }}">
+        </label>
+        <label>
+            <span>Сумма до</span>
+            <input type="number" step="0.01" name="price_max" value="{{ filters.price_max }}">
+        </label>
+        <label>
+            <span>Дата с</span>
+            <input type="date" name="date_from" value="{{ filters.date_from }}">
+        </label>
+        <label>
+            <span>Дата по</span>
+            <input type="date" name="date_to" value="{{ filters.date_to }}">
+        </label>
+        <label>
+            <span>Статус</span>
+            <select name="status">
+                <option value="">Все</option>
+                {% for status_name in status_options %}
+                <option value="{{ status_name }}" {% if filters.status == status_name %}selected{% endif %}>{{ status_name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Магазин</span>
+            <select name="store">
+                <option value="">Все</option>
+                {% for store in store_options %}
+                <option value="{{ store.id }}" {% if filters.store == store.id|stringformat:'s' %}selected{% endif %}>{{ store.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="orders-search-form__actions">
+            <button type="submit" class="btn-primary">Найти</button>
+            <a class="btn-link" href="{% url 'orders:order_history' %}">Назад к списку</a>
+        </div>
+    </form>
+
+    <div class="orders-list">
+        {% include "orders/partials/order_cards.html" with orders=orders %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="orders-pagination">
+        {% if page_obj.has_previous %}
+        <a class="btn-link" href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="btn-link" href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.next_page_number }}">Показать ещё</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

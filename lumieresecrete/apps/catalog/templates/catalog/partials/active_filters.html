@@ -1,0 +1,9 @@
+<div class="active-filters__chips">
+    {% for f in active_filters %}
+        <button type="button" class="chip" data-remove-filter data-param="{{ f.param }}" data-value="{{ f.value|default:'' }}">
+            {{ f.label }} ✕
+        </button>
+    {% empty %}
+        <span class="muted">Фильтры не выбраны</span>
+    {% endfor %}
+</div>

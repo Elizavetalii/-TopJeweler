@@ -1,0 +1,81 @@
+from django.http import JsonResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
+
+# Попробуем импортировать модели, но если их нет — обработаем gracefully
+try:
+    from .models import Product, Category, ProductVariant  # singular names expected
+except Exception:
+    Product = None
+    Category = None
+    ProductVariant = None
+
+def _product_to_dict(p):
+    try:
+        return {
+            "id": getattr(p, "product_id", getattr(p, "id", None)),
+            "name": getattr(p, "name", None),
+        }
+    except Exception:
+        return {"id": None, "name": None}
+
+def catalog_list(request):
+    """
+    Возвращает список продуктов в JSON.
+    Если модель Product доступна — вернёт реальные объекты, иначе пустой список.
+    """
+    if Product is None:
+        return JsonResponse({"products": []})
+    qs = Product.objects.all()[:100]
+    data = [_product_to_dict(p) for p in qs]
+    return JsonResponse({"products": data})
+
+def product_detail(request, pk=None):
+    """
+    Возвращает детали продукта по PK (product_id или id).
+    Поддерживает pk из URL.
+    """
+    if Product is None:
+        return HttpResponseNotFound("Product model not available")
+    # попробуем найти по product_id, если есть поле
+    try:
+        # сначала по product_id (если поле есть), иначе по pk
+        obj = Product.objects.filter(product_id=pk).first() or Product.objects.filter(pk=pk).first()
+        if not obj:
+            return HttpResponseNotFound("Product not found")
+        return JsonResponse(_product_to_dict(obj))
+    except Exception:
+        return HttpResponseNotFound("Product lookup error")
+
+def category_list(request):
+    """
+    Возвращает список категорий.
+    """
+    if Category is None:
+        return JsonResponse({"categories": []})
+    qs = Category.objects.all()[:100]
+    data = [{"id": getattr(c, "category_id", getattr(c, "id", None)), "name": getattr(c, "name", None)} for c in qs]
+    return JsonResponse({"categories": data})
+
+def variants_for_product(request, product_pk=None):
+    """
+    Возвращает варианты (product variants) для продукта.
+    """
+    if ProductVariant is None or Product is None:
+        return JsonResponse({"variants": []})
+    try:
+        product = Product.objects.filter(product_id=product_pk).first() or Product.objects.filter(pk=product_pk).first()
+        if not product:
+            return JsonResponse({"variants": []})
+        qs = ProductVariant.objects.filter(product=product)[:200]
+        data = []
+        for v in qs:
+            data.append({
+                "id": getattr(v, "variant_id", getattr(v, "id", None)),
+                "price": getattr(v, "price", None),
+                "size": getattr(v, "size", None),
+                "color": getattr(v, "color", None),
+                "quantity": getattr(v, "quantity", None),
+            })
+        return JsonResponse({"variants": data})
+    except Exception:
+        return JsonResponse({"variants": []})

@@ -1,0 +1,6 @@
+Django==4.2
+djangorestframework==3.14.0
+pandas==1.5.3
+openpyxl==3.0.10
+xlsxwriter==3.0.3
+psycopg2-binary==2.9.5

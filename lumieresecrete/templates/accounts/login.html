@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Аккаунт</p>
+        <h1>Авторизация</h1>
+        <p>Войдите, чтобы добавлять товары в корзину и оформлять заказы.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <label>Email {{ form.email }} {{ form.email.errors }}</label>
+        <label>Пароль {{ form.password }} {{ form.password.errors }}</label>
+        <button type="submit" class="btn-primary">Войти</button>
+        <p><a href="{% url 'accounts:password_reset' %}">Забыли пароль?</a></p>
+        <p class="muted">Нет аккаунта? <a href="{% url 'accounts:register' %}">Зарегистрируйтесь</a></p>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+.venv/
+
+# Env files / secrets
+.env
+
+# Django collected static
+staticfiles/
+
+# Logs
+*.log
+
+# macOS junk
+.DS_Store
+
+# IDE / editor configs
+.idea/
+.vscode/
+.pytest_cache/
+.mypy_cache/
+
+# Coverage / testing
+.coverage
+coverage.xml
+
+# Node / front-end
+node_modules/
+dist/

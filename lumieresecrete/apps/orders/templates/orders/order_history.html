@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Мои заказы — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Заказы</p>
+        <h1>История заказов</h1>
+        <p>Отслеживайте статус и состав своих заказов.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="orders-search">
+    <form method="get" class="orders-search-form">
+        <label class="search-field">
+            <span>Поиск</span>
+            <input type="text" name="q" placeholder="Номер заказа или название товара" value="{{ filters.q }}">
+        </label>
+        <label>
+            <span>Статус</span>
+            <select name="status">
+                <option value="">Все</option>
+                {% for status_name in filters.status_options %}
+                <option value="{{ status_name }}" {% if filters.status == status_name %}selected{% endif %}>{{ status_name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Период</span>
+            <select name="period">
+                {% for key, option in filters.period_options.items %}
+                <option value="{{ key }}" {% if filters.period == key %}selected{% endif %}>{{ option.0 }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Магазин</span>
+            <select name="store">
+                <option value="">Все</option>
+                {% for store in filters.store_options %}
+                <option value="{{ store.id }}" {% if filters.store == store.id|stringformat:'s' %}selected{% endif %}>{{ store.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="btn-primary">Найти</button>
+        <a class="btn-link" href="{% url 'orders:order_search' %}">Расширенный поиск</a>
+    </form>
+
+    <div class="orders-list">
+        {% include "orders/partials/order_cards.html" with orders=orders %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="orders-pagination">
+        {% if page_obj.has_previous %}
+        <a class="btn-link" href="?{% if filters.base_query %}{{ filters.base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="btn-link" href="?{% if filters.base_query %}{{ filters.base_query }}&{% endif %}page={{ page_obj.next_page_number }}">Показать ещё</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

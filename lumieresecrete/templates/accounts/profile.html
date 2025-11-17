@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Аккаунт</p>
+        <h1>Личный кабинет</h1>
+        <p>Настройте предпочтения отображения каталога.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <aside class="profile-sidebar">
+        <div class="profile-card">
+            <div class="notification-panel">
+                <button type="button" class="notification-bell {% if unread_notifications %}is-active{% endif %}" data-bell-toggle {% if unread_notifications %}data-unread="true"{% endif %}>
+                    🔔
+                    {% if unread_notifications %}
+                    <span class="notification-badge">{{ unread_notifications }}</span>
+                    {% endif %}
+                </button>
+                <div class="notification-dropdown" data-bell-dropdown hidden>
+                    <p class="muted">Изменения статусов заказов</p>
+                    {% if notifications %}
+                    <ul>
+                        {% for note in notifications %}
+                        <li>
+                            <strong>Заказ №{{ note.order.order_id }}</strong><br>
+                            {{ note.old_status|default:"—" }} → {{ note.new_status|default:"—" }}<br>
+                            <span class="muted">{{ note.created_at|date:"d.m.Y H:i" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>Уведомлений нет.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-avatar">
+                {{ request.user.first_name|default:request.user.username|first|upper }}
+            </div>
+            <div class="profile-meta">
+                <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+                <p>{{ request.user.email }}</p>
+            </div>
+            <dl>
+                <div>
+                    <dt>Дата регистрации</dt>
+                    <dd>{{ formatted_date_joined }}</dd>
+                </div>
+                <div>
+                    <dt>Последний вход</dt>
+                    <dd>{{ formatted_last_login }}</dd>
+                </div>
+            </dl>
+        </div>
+        <div class="profile-tip">
+            {% if allow_catalog_preferences %}
+            <p>Здесь вы управляете темой сайта, количеством карточек на странице и видом иконки избранного. Ниже можно обновить пароль.</p>
+            {% else %}
+            <p>Здесь вы управляете только темой и форматом даты. Ниже можно обновить пароль.</p>
+            {% endif %}
+        </div>
+    </aside>
+
+    <section class="profile-main">
+        <div class="profile-section">
+            <div class="section-head">
+                <h2>Настройки отображения</h2>
+                <span class="muted">Применяются сразу после сохранения</span>
+            </div>
+            <form method="post" class="profile-form">
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="settings">
+                <div class="form-grid">
+                    <label>
+                        <span>Тема</span>
+                        {{ form.theme }}
+                    </label>
+                    <label>
+                        <span>Формат даты</span>
+                        {{ form.date_format }}
+                    </label>
+                    {% if allow_catalog_preferences %}
+                    <label>
+                        <span>Карточек на странице</span>
+                        {{ form.page_size }}
+                    </label>
+                    {% endif %}
+                </div>
+                {% if allow_catalog_preferences %}
+                <div class="favorite-choice">
+                    <p>Иконка избранного</p>
+                    <div class="favorite-choice__options">
+                        {% for value, label in form.favorite_icon.field.choices %}
+                        <label class="choice-pill">
+                            {% with current=form.favorite_icon.value %}
+                            <input type="radio" name="{{ form.favorite_icon.name }}" value="{{ value }}" {% if current == value %}checked{% endif %}>
+                            <span>
+                                <span class="choice-icon {% if value == 'star' %}choice-icon--star{% endif %}"></span>
+                                {{ label }}
+                            </span>
+                            {% endwith %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if form.errors %}
+                <ul class="form-errors">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <button type="submit" class="btn-primary">Сохранить</button>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <div class="section-head">
+                <h2>Смена пароля</h2>
+                <span class="muted">Используйте сложные комбинации символов</span>
+            </div>
+            <form method="post" class="profile-form">
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="password">
+                <div class="form-grid">
+                    <label>
+                        <span>Текущий пароль</span>
+                        {{ password_form.old_password }}
+                    </label>
+                    <label>
+                        <span>Новый пароль</span>
+                        {{ password_form.new_password1 }}
+                    </label>
+                    <label>
+                        <span>Повторите новый пароль</span>
+                        {{ password_form.new_password2 }}
+                    </label>
+                </div>
+                {% if password_form.errors %}
+                <ul class="form-errors">
+                    {% for field, errors in password_form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <button type="submit" class="btn-primary">Обновить пароль</button>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const toggle = document.querySelector('[data-bell-toggle]');
+  const dropdown = document.querySelector('[data-bell-dropdown]');
+  if (!toggle || !dropdown) {
+    return;
+  }
+  toggle.addEventListener('click', function () {
+    dropdown.toggleAttribute('hidden');
+    if (dropdown.hasAttribute('hidden')) {
+      return;
+    }
+    if (!toggle.dataset.unread) {
+      return;
+    }
+    fetch("{% url 'accounts:notifications_mark_read' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+    }).then(function () {
+      toggle.classList.remove('is-active');
+      toggle.removeAttribute('data-unread');
+      const badge = toggle.querySelector('.notification-badge');
+      if (badge) {
+        badge.remove();
+      }
+    });
+  });
+});
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+{% endblock %}

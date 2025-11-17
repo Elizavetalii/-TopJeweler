@@ -1,0 +1,182 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Lumiere Secrète — Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin/custom.css' %}">
+<style>
+.hotkey-cheatsheet {
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 12, 12, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 9999;
+}
+.hotkey-cheatsheet[hidden] { display: none; }
+.hotkey-cheatsheet__inner {
+    background: #fff;
+    border-radius: 28px;
+    padding: 1.5rem 2rem;
+    width: min(520px, 95%);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+}
+.hotkey-cheatsheet__head {
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    margin-bottom: 1rem;
+}
+.hotkey-cheatsheet__close {
+    border: none;
+    background: rgba(0,0,0,0.08);
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+.hotkey-cheatsheet ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+}
+.hotkey-cheatsheet kbd {
+    background: rgba(0,0,0,0.08);
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+[data-theme="dark"] .hotkey-cheatsheet__inner {
+    background: #1e1e1e;
+    color: #f5f5f5;
+}
+[data-theme="dark"] .hotkey-cheatsheet__close,
+[data-theme="dark"] .hotkey-cheatsheet kbd {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+(function () {
+    const storageKey = 'ls-admin-theme';
+    const root = document.documentElement;
+    const applyTheme = (theme) => {
+        root.dataset.theme = theme;
+    };
+    const saved = localStorage.getItem(storageKey) || 'light';
+    applyTheme(saved);
+
+    function updateButton(btn, theme) {
+        if (btn) {
+            btn.textContent = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('theme-toggle');
+        updateButton(toggleBtn, saved);
+        toggleBtn?.addEventListener('click', () => {
+            const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            localStorage.setItem(storageKey, nextTheme);
+            updateButton(toggleBtn, nextTheme);
+        });
+    });
+})();
+</script>
+{% endblock %}
+
+{% block branding %}
+<div class="ls-admin-brand">
+    <div>
+        <span class="ls-admin-tagline"> Панель управления</span>
+        <span class="ls-admin-logo">Lumiere Secrète</span>
+<!--         
+        <span>для вас, {{ user.get_full_name|default:user.get_username }}</span> -->
+    </div>
+    <div class="ls-admin-links">
+        <a href="{% url 'admin_tools:maintenance' %}" class="ls-admin-backup-link">← на сайт</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<div class="ls-quick-actions">
+    <a href="{% url 'admin:orders_order_add' %}">+Заказ</a>
+    <a href="{% url 'admin:catalog_product_add' %}">+Товар</a>
+    <a href="{% url 'admin:accounts_user_add' %}">+Пользователь</a>
+    <button type="button" id="theme-toggle">Тёмная тема</button>
+</div>
+
+<div class="ls-user-panel">
+
+    <a href="{% url 'admin:password_change' %}">Сменить пароль</a>
+    <a href="{% url 'admin:logout' %}">Выход из системы</a>
+</div>
+
+{{ block.super }}
+{% endblock %}
+
+{# Убираем/оставляем пустым переопределение usertools, чтобы не дублировать #}
+{% block usertools %}{% endblock %}
+
+<div class="hotkey-cheatsheet" data-hotkey-cheatsheet hidden>
+    <div class="hotkey-cheatsheet__inner">
+        <div class="hotkey-cheatsheet__head">
+            <h3>Горячие клавиши</h3>
+            <button type="button" class="hotkey-cheatsheet__close" data-hotkey-close aria-label="Закрыть подсказку">×</button>
+        </div>
+        <ul>
+            <li><kbd>Ctrl</kbd><span class="kbd-secondary">/⌘</span> + <kbd>Shift</kbd> + <kbd>F</kbd> — Фокус на поиске каталога.</li>
+            <li><kbd>Ctrl</kbd><span class="kbd-secondary">/⌘</span> + <kbd>Shift</kbd> + <kbd>L</kbd> — Каталог.</li>
+            <li><kbd>Ctrl</kbd><span class="kbd-secondary">/⌘</span> + <kbd>Shift</kbd> + <kbd>C</kbd> — Корзина.</li>
+            <li><kbd>Ctrl</kbd><span class="kbd-secondary">/⌘</span> + <kbd>Shift</kbd> + <kbd>P</kbd> — Профиль.</li>
+            <li><kbd>Ctrl</kbd><span class="kbd-secondary">/⌘</span> + <kbd>Shift</kbd> + <kbd>H</kbd> — Справка по клавишам.</li>
+        </ul>
+        {% if user.is_authenticated and user.is_manager %}
+        <h4>Менеджеру</h4>
+        <ul>
+            <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> — Панель менеджера.</li>
+            <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> — Статистика.</li>
+            <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> — Модерация отзывов.</li>
+        </ul>
+        {% endif %}
+        {% if user.is_staff %}
+        <h4>Администратору</h4>
+        <ul>
+            <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> — Резервные копии.</li>
+            <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> — Админ-панель.</li>
+        </ul>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    window.hotkeyConfig = {
+        catalogUrl: "{% url 'catalog_list' %}",
+        favoritesUrl: {% if user.is_authenticated %}"{% url 'favorites_list' %}"{% else %}null{% endif %},
+        cartUrl: "{% url 'view_cart' %}",
+        ordersUrl: {% if user.is_authenticated %}"{% url 'orders:order_history' %}"{% else %}null{% endif %},
+        profileUrl: {% if user.is_authenticated %}"{% url 'accounts:profile' %}"{% else %}null{% endif %},
+        managerUrl: {% if user.is_authenticated and user.is_manager %}"{% url 'reports:manager_dashboard' %}"{% else %}null{% endif %},
+        managerStatsUrl: {% if user.is_authenticated and user.is_manager %}"{% url 'reports:manager_stats' %}"{% else %}null{% endif %},
+        managerReviewsUrl: {% if user.is_authenticated and user.is_manager %}"{% url 'reports:manager_reviews' %}"{% else %}null{% endif %},
+        backupUrl: {% if user.is_staff %}"{% url 'admin_tools:maintenance' %}"{% else %}null{% endif %},
+        adminUrl: {% if user.is_staff %}"{% url 'admin:index' %}"{% else %}null{% endif %},
+    };
+</script>
+<script src="{% static 'catalog/hotkeys.js' %}" defer></script>

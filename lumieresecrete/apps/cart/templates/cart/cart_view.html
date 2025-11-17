@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Корзина — Lumiere Secrète{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Корзина</p>
+        <h1>Ваш curated сет</h1>
+        <p>Изменяйте количество, применяйте промокод и оформляйте заказ в один клик.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="cart-page" data-cart-page data-undo-url="{{ undo_url }}">
+    {% if items %}
+    <div class="cart-toolbar">
+        <p class="muted">В корзине {{ items|length }} позиций</p>
+        <form method="post" action="{% url 'cart_clear' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-link">Очистить корзину</button>
+        </form>
+    </div>
+    <div class="cart-layout">
+        <section class="cart-lines">
+            {% for item in items %}
+            <article
+                class="cart-line"
+                data-cart-item
+                data-item-id="{{ item.id }}"
+                data-update-url="{{ item.update_url }}"
+                data-remove-url="{{ item.remove_url }}"
+            >
+                <div class="cart-line__media">
+                    <img src="{{ item.photo }}" alt="{{ item.name }}">
+                    <a class="cart-line__preview" href="{{ item.detail_url }}">Быстрый просмотр</a>
+                </div>
+                <div class="cart-line__body">
+                    <div>
+                        <h3>
+                            {% if item.detail_url %}
+                                <a href="{{ item.detail_url }}">{{ item.name }}</a>
+                            {% else %}
+                                {{ item.name }}
+                            {% endif %}
+                        </h3>
+                        <p class="muted">{{ item.color }} · {{ item.size }}</p>
+                        <p class="muted">Бутик: {{ item.store_label }}</p>
+                    </div>
+                    <div class="cart-line__controls">
+                        <div>
+                            <span class="muted">Цена</span>
+                            <p class="product-price">{{ item.price_display }}</p>
+                        </div>
+                        <div class="quantity-stepper" data-quantity>
+                            <button type="button" data-step-down aria-label="Уменьшить">−</button>
+                            <input type="number" min="1" value="{{ item.quantity }}" data-qty-input>
+                            <button type="button" data-step-up aria-label="Увеличить">+</button>
+                        </div>
+                        <div>
+                            <span class="muted">Сумма</span>
+                            <p class="product-price" data-line-total>{{ item.line_total_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="cart-line__actions">
+                    {% if item.favorite_url %}
+                    <button
+                        type="button"
+                        class="favorite-btn favorite-btn--ghost {% if item.is_favorite %}is-active{% endif %}"
+                        data-favorite-toggle
+                        data-url="{{ item.favorite_url }}"
+                        aria-pressed="{{ item.is_favorite|yesno:'true,false' }}"
+                        aria-label="{% if item.is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+                    >
+                        <span class="heart-icon" aria-hidden="true"></span>
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn-link" data-remove-line>Удалить</button>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+
+        <aside class="cart-summary" data-cart-summary>
+            <h2>Итого</h2>
+            <div class="summary-row">
+                <span>Сумма товаров</span>
+                <strong data-subtotal>{{ cart_summary.subtotal_display }}</strong>
+            </div>
+            <div class="summary-row summary-row--discount{% if not cart_summary.discount_display %} is-hidden{% endif %}" data-discount-row>
+                <span data-discount-label>Скидка{% if promo.code %} ({{ promo.code }}){% endif %}</span>
+                <strong data-discount>{{ cart_summary.discount_display|default_if_none:"" }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Доставка</span>
+                <strong data-shipping>{{ cart_summary.shipping_display }}</strong>
+            </div>
+            <div class="summary-row summary-row--total">
+                <span>К оплате</span>
+                <strong data-total>{{ cart_summary.total_display }}</strong>
+            </div>
+
+            <form class="promo-form" action="{% url 'cart_apply_promo' %}" method="post" data-promo-form>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="cart">
+                <input type="hidden" name="intent" value="apply">
+                <label for="promo">Промокод</label>
+                <div>
+                    <input type="text" id="promo" name="promo" value="{{ promo.code }}" placeholder="LUMIERE10" autocomplete="off" data-promo-input>
+                    <button type="submit" class="btn-link">Применить</button>
+                </div>
+                {% if promo.message or promo.is_applied or promo.code %}
+                <p class="promo-hint {% if promo.is_applied %}promo-hint--success{% endif %}" data-promo-message>
+                    {% if promo.message %}
+                        {{ promo.message }}
+                    {% elif promo.is_applied %}
+                        Скидка {{ cart_summary.discount_display }} активна.
+                    {% elif promo.code %}
+                        Промокод сохранён{% if promo.min_total_display %}, он применится от {{ promo.min_total_display }}{% endif %}.
+                    {% endif %}
+                </p>
+                {% else %}
+                <p class="promo-hint" data-promo-message hidden></p>
+                {% endif %}
+            </form>
+            <form class="promo-remove{% if not promo.code %} is-hidden{% endif %}" method="post" action="{% url 'cart_apply_promo' %}" data-promo-remove>
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="clear">
+                <input type="hidden" name="next" value="cart">
+                <button type="submit" class="btn-link">Удалить промокод</button>
+            </form>
+
+            <a class="btn-primary btn-wide" href="{% url 'checkout' %}" data-checkout-btn>Перейти к оформлению</a>
+            <p class="muted">Оплата картой, Apple Pay или наличными при получении.</p>
+        </aside>
+    </div>
+
+    <div class="cart-footer">
+        <div>
+            <p>Всего</p>
+            <strong data-total>{{ cart_summary.total_display }}</strong>
+        </div>
+        <a class="btn-primary" href="{% url 'checkout' %}" data-checkout-btn>Оформить</a>
+    </div>
+    {% else %}
+    <div class="empty-state cart-empty">
+        <img src="https://placehold.co/280x160/F1ECE6/2E2E2E?text=Lumiere" alt="Пустая корзина">
+        <p>Корзина пока пуста. Добавьте вещь и вернитесь за вдохновением.</p>
+        <a class="btn-primary" href="{% url 'catalog_list' %}">Перейти в каталог</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'catalog/cart_wishlist.js' %}" defer></script>
+{% endblock %}

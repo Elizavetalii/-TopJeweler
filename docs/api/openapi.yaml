@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: Lumiere Secrète API
+  version: "1.0"
+  description: |
+    REST API для операций с заказами интернет-бутика. Спецификация описывает доступные
+    конечные точки, параметры, схемы данных и коды ошибок.
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /orders/api/orders/:
+    get:
+      summary: Список заказов
+      tags: [Orders]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: Фильтр по статусу
+        - in: query
+          name: store
+          schema:
+            type: integer
+          description: Идентификатор магазина
+      responses:
+        "200":
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      summary: Создание заказа
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreateRequest"
+      responses:
+        "201":
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders/api/orders/{orderId}/:
+    get:
+      summary: Детали заказа
+      tags: [Orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Заказ найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders/api/orders/create/:
+    post:
+      summary: Создание заказа (устаревшая форма)
+      deprecated: true
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreateRequest"
+      responses:
+        "201":
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders/api/orders/{orderId}/update/:
+    post:
+      summary: Обновление заказа
+      tags: [Orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdateRequest"
+      responses:
+        "200":
+          description: Заказ обновлён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders/api/orders/{orderId}/delete/:
+    post:
+      summary: Удаление заказа
+      tags: [Orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Заказ удалён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  parameters:
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema:
+        type: integer
+      description: Уникальный идентификатор заказа
+  schemas:
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        status_id:
+          type: integer
+          nullable: true
+        total_amount:
+          type: number
+          format: float
+        store_id:
+          type: integer
+          nullable: true
+        discount_amount:
+          type: number
+          format: float
+        created_at:
+          type: string
+          description: Дата создания (в формате строки, как приходит из 1С/SQL)
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+    OrderItem:
+      type: object
+      properties:
+        product_variant_id:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: float
+    OrderCreateRequest:
+      type: object
+      required: [user_id, items]
+      properties:
+        user_id:
+          type: integer
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OrderItem"
+    OrderUpdateRequest:
+      type: object
+      properties:
+        status_id:
+          type: integer
+        total_amount:
+          type: number
+          format: float
+        store_id:
+          type: integer
+        created_at:
+          type: string
+          description: Новая дата создания (при синхронизации)
+    DeleteResponse:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+          example: true
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: Заказ не найден

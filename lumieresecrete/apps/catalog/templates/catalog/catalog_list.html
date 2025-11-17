@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Каталог — Lumiere Secrète{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'catalog/catalog.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'catalog/catalog.js' %}" defer></script>
+{% endblock %}
+
+{% block hero %}
+<section class="catalog-hero">
+    <div class="hero-content">
+        <p class="eyebrow">Lumiere Secrète</p>
+        <h1>Витрина</h1>
+        <p>Фильтры как в любимых маркетплейсах, быстрый просмотр и избранное.</p>
+        <button class="btn-primary filters-toggle mobile-only" data-filters-toggle>Фильтры</button>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="catalog-layout">
+    <aside class="filters-panel" data-filters-panel>
+        <form method="get" id="catalog-filter-form" class="filters-form">
+            <div class="filters-form__header">
+                <h2>Фильтры</h2>
+                <button type="button" class="btn-link mobile-only" data-filters-close>Закрыть ✕</button>
+            </div>
+            <input type="hidden" name="page" value="{{ products_page.number }}">
+
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Поиск</button>
+                <div class="filter-group__content">
+                    <input type="search" name="q" placeholder="Название или описание" value="{{ selected.search }}" data-search-input data-hotkey-search>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Цена</button>
+                <div class="filter-group__content price-range">
+                    <div class="price-range__inputs">
+                        <input type="number" step="0.01" name="price_min" value="{{ selected.price_min }}" data-price-min>
+                        <input type="number" step="0.01" name="price_max" value="{{ selected.price_max }}" data-price-max>
+                    </div>
+                    <div class="price-range__sliders">
+                        <input type="range" min="{{ filters_data.price.min_price|default:0 }}" max="{{ filters_data.price.max_price|default:0 }}" value="{{ selected.price_min|default:filters_data.price.min_price }}" data-slider-min>
+                        <input type="range" min="{{ filters_data.price.min_price|default:0 }}" max="{{ filters_data.price.max_price|default:0 }}" value="{{ selected.price_max|default:filters_data.price.max_price }}" data-slider-max>
+                    </div>
+                </div>
+            </div>
+
+            {% if filters_data.categories %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Категории</button>
+                <div class="filter-group__content">
+                    {% for category in filters_data.categories %}
+                        <label class="checkbox">
+                            <input type="checkbox" name="category" value="{{ category.category_id }}" {% if category.category_id|stringformat:'s' in selected.categories %}checked{% endif %}>
+                            {{ category.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if filters_data.colors %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Цвет</button>
+                <div class="filter-group__content color-swatches">
+                    {% for color in filters_data.colors %}
+                        <label class="swatch" title="{{ color.name_color }}">
+                            <input type="checkbox" name="color" value="{{ color.gemstone_id }}" {% if color.gemstone_id|stringformat:'s' in selected.colors %}checked{% endif %}>
+                            <span style="background-color: {{ color.color_code|default:'#7d4047' }}"></span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if filters_data.size_groups %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Размер</button>
+                <div class="filter-group__content">
+                    <div class="size-groups">
+                        {% for group in filters_data.size_groups %}
+                        <div class="size-group">
+                            <p class="size-group__title">{{ group.category_name|default:"Без категории" }}</p>
+                            <div class="tags">
+                                {% for size in group.sizes %}
+                                    <label class="tag">
+                                        <input type="checkbox" name="size" value="{{ size.size_id }}" {% if size.size_id|stringformat:'s' in selected.sizes %}checked{% endif %}>
+                                        <span>{{ size.size }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% elif filters_data.sizes %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Размер</button>
+                <div class="filter-group__content tags">
+                    {% for size in filters_data.sizes %}
+                        <label class="tag">
+                            <input type="checkbox" name="size" value="{{ size.size_id }}" {% if size.size_id|stringformat:'s' in selected.sizes %}checked{% endif %}>
+                            <span>{{ size.size }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if filters_data.stores %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Магазин</button>
+                <div class="filter-group__content">
+                    {% for store in filters_data.stores %}
+                        <label class="checkbox">
+                            <input type="checkbox" name="store" value="{{ store.store_id }}" {% if store.store_id|stringformat:'s' in selected.stores %}checked{% endif %}>
+                            {{ store.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if filters_data.structures %}
+            <div class="filter-group">
+                <button type="button" class="filter-group__title" data-accordion>Структура</button>
+                <div class="filter-group__content tags">
+                    {% for structure in filters_data.structures %}
+                        <label class="tag">
+                            <input type="checkbox" name="structure" value="{{ structure }}" {% if structure in selected.structures %}checked{% endif %}>
+                            <span>{{ structure }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="filter-group">
+                <label class="checkbox checkbox--inline">
+                    <input type="checkbox" name="in_stock" value="1" {% if selected.in_stock == '1' %}checked{% endif %}>
+                    Только в наличии
+                </label>
+            </div>
+
+            <div class="filters-actions">
+                <button type="button" class="btn-link" data-clear-filters>Сбросить</button>
+                <button type="submit" class="btn-primary" data-apply-filters>Применить</button>
+            </div>
+        </form>
+    </aside>
+
+    <section class="products-area">
+        <div class="products-toolbar" data-toolbar>
+            <div class="toolbar-info">
+                <p class="eyebrow">Сортировка</p>
+                <select name="sort" form="catalog-filter-form" id="sortSelect">
+                    <option value="newest" {% if selected.sort == 'newest' %}selected{% endif %}>Сначала новинки</option>
+                    <option value="price_asc" {% if selected.sort == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
+                    <option value="price_desc" {% if selected.sort == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
+                    <option value="popular" {% if selected.sort == 'popular' %}selected{% endif %}>Популярные</option>
+                </select>
+            </div>
+            <div class="active-filters js-active-filters">
+                {% include "catalog/partials/active_filters.html" %}
+            </div>
+        </div>
+
+        <div class="products-grid js-product-grid">
+            {% include "catalog/partials/product_cards.html" %}
+        </div>
+
+        <div class="pagination js-pagination">
+            {% include "catalog/partials/pagination.html" with products_page=products_page base_query=base_query %}
+        </div>
+    </section>
+
+</div>
+
+<div class="filters-overlay" data-filters-overlay></div>
+
+<div class="quick-view-modal" data-quick-view>
+    <div class="quick-view-modal__content">
+        <button class="quick-view-modal__close" data-quick-close>&times;</button>
+        <div class="quick-view-modal__body js-quick-body"></div>
+    </div>
+</div>
+{% endblock %}

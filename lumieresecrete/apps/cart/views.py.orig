@@ -1,0 +1,33 @@
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from .models import CartItems
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def view_cart(request):
+    cart_items = CartItems.objects.filter(UserID=request.user)
+    total_amount = sum(item.Price * item.Quantity for item in cart_items)
+    return render(request, 'cart/view_cart.html', {'cart_items': cart_items, 'total_amount': total_amount})
+
+@login_required
+def add_to_cart(request, product_variant_id):
+    if request.method == 'POST':
+        quantity = request.POST.get('quantity', 1)
+        cart_item, created = CartItems.objects.get_or_create(
+            UserID=request.user,
+            ProductVariantID=product_variant_id,
+            defaults={'Quantity': quantity}
+        )
+        if not created:
+            cart_item.Quantity += int(quantity)
+            cart_item.save()
+        return JsonResponse({'status': 'success', 'message': 'Item added to cart'})
+
+@login_required
+def remove_from_cart(request, cart_item_id):
+    try:
+        cart_item = CartItems.objects.get(OrderItemID=cart_item_id, UserID=request.user)
+        cart_item.delete()
+        return JsonResponse({'status': 'success', 'message': 'Item removed from cart'})
+    except CartItems.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Item not found'})

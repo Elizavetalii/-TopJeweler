@@ -1,0 +1,24 @@
+from rest_framework import serializers
+from .models import Product, Category
+from apps.product_variants.models import ProductVariant
+try:
+    from apps.stores.models import Store
+except Exception:
+    Store = None
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('category_id', 'name')
+
+class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    class Meta:
+        model = Product
+        fields = ('product_id', 'name', 'category')
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    class Meta:
+        model = ProductVariant
+        fields = ('variant_id', 'product', 'color', 'size', 'price', 'quantity', 'store')

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'DejaVu Sans', sans-serif; margin: 0; padding: 32px; color: #222; }
+        h1 { font-size: 20px; margin-bottom: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 13px; }
+        th { text-align: left; background: #f5f5f5; }
+        .summary { margin-top: 20px; width: 250px; float: right; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .qr { margin-top: 24px; text-align: center; }
+        .qr img { width: 140px; }
+        .meta { font-size: 12px; color: #666; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Чек заказа №{{ order.order_id }}</h1>
+    <p class="meta">Дата: {{ issued_at|date:"d.m.Y H:i" }} • Магазин: {{ order.store.name|default:"Lumiere Secrète" }}</p>
+    <p class="meta">Покупатель: {{ customer_name|default:"—" }}{% if address %} • Адрес: {{ address }}{% endif %}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Опции</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.color }} {{ item.size }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.subtotal }} ₽</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-row"><span>Сумма товаров:</span><strong>{{ subtotal }} ₽</strong></div>
+        {% if discount %}
+        <div class="summary-row"><span>Скидка{% if promo_code %} ({{ promo_code }}){% endif %}:</span><strong>-{{ discount }} ₽</strong></div>
+        {% endif %}
+        <div class="summary-row"><span>Подытог:</span><strong>{{ taxable_subtotal }} ₽</strong></div>
+        <div class="summary-row"><span>Налог:</span><strong>{{ tax }} ₽</strong></div>
+        <div class="summary-row"><span>Доставка:</span><strong>{{ shipping }} ₽</strong></div>
+        <div class="summary-row"><span>Итого:</span><strong>{{ total }} ₽</strong></div>
+    </div>
+
+    <div class="qr">
+        <p>Проверить чек:</p>
+        <img src="data:image/png;base64,{{ qr_code }}" alt="QR code">
+    </div>
+</body>
+</html>

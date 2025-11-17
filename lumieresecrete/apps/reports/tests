@@ -1,0 +1,39 @@
+from django.test import TestCase
+from apps.reports.models import Report  # Assuming you have a Report model
+from django.urls import reverse
+
+class ReportTests(TestCase):
+
+    def setUp(self):
+        # Set up any necessary data for the tests
+        self.report = Report.objects.create(title="Test Report", content="This is a test report.")
+
+    def test_report_creation(self):
+        """Test that a report can be created successfully."""
+        self.assertEqual(self.report.title, "Test Report")
+        self.assertEqual(self.report.content, "This is a test report.")
+
+    def test_report_list_view(self):
+        """Test the report list view."""
+        response = self.client.get(reverse('reports:list'))  # Adjust the URL name as necessary
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Report")
+
+    def test_report_detail_view(self):
+        """Test the report detail view."""
+        response = self.client.get(reverse('reports:detail', args=[self.report.id]))  # Adjust the URL name as necessary
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This is a test report.")
+
+    def test_report_update(self):
+        """Test updating a report."""
+        self.report.title = "Updated Report"
+        self.report.save()
+        self.assertEqual(self.report.title, "Updated Report")
+
+    def test_report_deletion(self):
+        """Test deleting a report."""
+        report_id = self.report.id
+        self.report.delete()
+        with self.assertRaises(Report.DoesNotExist):
+            Report.objects.get(id=report_id)

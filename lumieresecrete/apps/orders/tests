@@ -1,0 +1,39 @@
+from django.test import TestCase
+from apps.orders.models import Order, OrderItem, Product, User
+
+class OrderModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(
+            FirstName='John',
+            LastName='Doe',
+            Email='john.doe@example.com',
+            Password='hashed_password'
+        )
+        self.product = Product.objects.create(
+            Name='Test Product',
+            CategoryID=1  # Assuming a category with ID 1 exists
+        )
+        self.order = Order.objects.create(
+            UserID=self.user,
+            CreatedAt='2023-01-01',
+            StatusID=1,  # Assuming a status with ID 1 exists
+            TotalAmount=100.00,
+            StoreID=1  # Assuming a store with ID 1 exists
+        )
+        self.order_item = OrderItem.objects.create(
+            OrderID=self.order,
+            ProductVariantID=1,  # Assuming a product variant with ID 1 exists
+            Quantity=2,
+            Price=50.00
+        )
+
+    def test_order_creation(self):
+        self.assertEqual(self.order.UserID, self.user)
+        self.assertEqual(self.order.TotalAmount, 100.00)
+
+    def test_order_item_creation(self):
+        self.assertEqual(self.order_item.OrderID, self.order)
+        self.assertEqual(self.order_item.Quantity, 2)
+
+    def test_order_str(self):
+        self.assertEqual(str(self.order), f'Order {self.order.OrderID} by {self.user.Email}')
