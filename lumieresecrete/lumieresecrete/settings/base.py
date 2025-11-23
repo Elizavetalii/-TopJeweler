@@ -164,6 +164,7 @@ EMAIL_BACKEND = env(
 EMAIL_HOST = env('DJANGO_EMAIL_HOST', default='smtp.inbox.ru')
 EMAIL_PORT = env.int('DJANGO_EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('DJANGO_EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('DJANGO_EMAIL_USE_SSL', default=False)
 EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER', default='sinitsyna-liza@inbox.ru')
 EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', default='VN68cP1NQK1MprnBAUid')
 DEFAULT_FROM_EMAIL = env('DJANGO_DEFAULT_FROM_EMAIL', default='Lumiere Secrète <sinitsyna-liza@inbox.ru>')
