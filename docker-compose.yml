@@ -32,6 +32,8 @@ services:
       DJANGO_DB_HOST: db
       DJANGO_DB_PORT: 5432
       DJANGO_DEBUG: "False"
+      # Отправка писем: по умолчанию в консоль, чтобы не было 500 и задержек SMTP
+      DJANGO_EMAIL_BACKEND: ${DJANGO_EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
       # Укажите фикстуру при необходимости (пример):
       INITIAL_FIXTURE: /srv/app/lumieresecrete/backups/backup-20251114-214816.json
     depends_on:
