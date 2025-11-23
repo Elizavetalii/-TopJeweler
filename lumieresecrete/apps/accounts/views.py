@@ -181,15 +181,23 @@ class PasswordResetViewSafe(PasswordResetView):
     success_url = reverse_lazy('accounts:password_reset_done')
 
     def form_valid(self, form):
-        form.save(
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            request=self.request,
-            from_email=None,
-            extra_email_context={'site_name': 'Lumiere Secrète'},
-            fail_silently=True,
-        )
+        try:
+            form.save(
+                use_https=self.request.is_secure(),
+                email_template_name=self.email_template_name,
+                subject_template_name=self.subject_template_name,
+                request=self.request,
+                from_email=None,
+                extra_email_context={'site_name': 'Lumiere Secrète'},
+                fail_silently=True,
+            )
+        except Exception:
+            # Никогда не падаем для пользователя — ведём себя так, будто письмо отправлено
+            pass
+        return redirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        # Даже если email некорректный — ведём себя так же, как Django (security):
         return redirect(self.get_success_url())
 def _format_user_datetime(user, value):
     if not value:
