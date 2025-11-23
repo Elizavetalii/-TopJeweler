@@ -156,10 +156,15 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'catalog_list'
 LOGOUT_REDIRECT_URL = 'catalog_list'
 
-EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+# Email backend: console by default in DEBUG, SMTP otherwise (overridable via env)
+EMAIL_BACKEND = env(
+    'DJANGO_EMAIL_BACKEND',
+    default=('django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend')
+)
 EMAIL_HOST = env('DJANGO_EMAIL_HOST', default='smtp.inbox.ru')
 EMAIL_PORT = env.int('DJANGO_EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('DJANGO_EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER', default='sinitsyna-liza@inbox.ru')
 EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', default='VN68cP1NQK1MprnBAUid')
 DEFAULT_FROM_EMAIL = env('DJANGO_DEFAULT_FROM_EMAIL', default='Lumiere Secrète <sinitsyna-liza@inbox.ru>')
+EMAIL_TIMEOUT = env.int('DJANGO_EMAIL_TIMEOUT', default=10)

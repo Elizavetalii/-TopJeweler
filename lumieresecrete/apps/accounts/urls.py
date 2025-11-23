@@ -8,6 +8,7 @@ from .views import (
     profile_view,
     notifications_mark_read,
     update_theme,
+    PasswordResetViewSafe,
 )
 
 app_name = 'accounts'
@@ -17,16 +18,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('profile/', profile_view, name='profile'),
-    path(
-        'password-reset/',
-        auth_views.PasswordResetView.as_view(
-            template_name='accounts/password_reset_form.html',
-            email_template_name='accounts/password_reset_email.html',
-            subject_template_name='accounts/password_reset_subject.txt',
-            success_url=reverse_lazy('accounts:password_reset_done'),
-        ),
-        name='password_reset',
-    ),
+    path('password-reset/', PasswordResetViewSafe.as_view(), name='password_reset'),
     path(
         'password-reset/done/',
         auth_views.PasswordResetDoneView.as_view(

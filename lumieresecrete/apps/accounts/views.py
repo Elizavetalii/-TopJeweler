@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 from django.http import JsonResponse
+from django.contrib.auth.views import PasswordResetView
+from django.urls import reverse_lazy
 
 from .forms import UserRegistrationForm, UserLoginForm, UserSettingsForm
 from .models import UserSettings, Role, UserRole
@@ -162,6 +164,33 @@ def update_theme(request):
     settings_obj.theme = value
     settings_obj.save(update_fields=['theme'])
     return JsonResponse({'status': 'ok', 'theme': value})
+
+
+class PasswordResetViewSafe(PasswordResetView):
+    """Password reset that never raises on email send and sends HTML.
+
+    - Uses our custom HTML template and Russian subject
+    - Adds a plain-text fallback part
+    - Sets fail_silently=True to avoid HTTP 500 if SMTP недоступен
+    """
+    template_name = 'accounts/password_reset_form.html'
+    email_template_name = 'accounts/password_reset_email.txt'
+    html_email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('accounts:password_reset_done')
+
+    def form_valid(self, form):
+        form.save(
+            use_https=self.request.is_secure(),
+            email_template_name=self.email_template_name,
+            html_email_template_name=self.html_email_template_name,
+            subject_template_name=self.subject_template_name,
+            request=self.request,
+            from_email=None,
+            extra_email_context={'site_name': 'Lumiere Secrète'},
+            fail_silently=True,
+        )
+        return redirect(self.get_success_url())
 def _format_user_datetime(user, value):
     if not value:
         return "—"

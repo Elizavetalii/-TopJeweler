@@ -7,18 +7,23 @@ def user_preferences(request):
     page_size = None
     is_manager = False
     if request.user.is_authenticated:
-        try:
-            settings_obj = request.user.usersettings
-        except UserSettings.DoesNotExist:
-            settings_obj = None
+        # Cache user settings on the user instance to avoid repeated DB hits per request
+        settings_obj = getattr(request.user, "_cached_usersettings", None)
+        if settings_obj is None:
+            try:
+                settings_obj = request.user.usersettings
+            except UserSettings.DoesNotExist:
+                settings_obj = None
+            setattr(request.user, "_cached_usersettings", settings_obj)
         if settings_obj:
             style = settings_obj.favorite_icon or style
             theme = settings_obj.theme or theme
             page_size = settings_obj.page_size
-        is_manager = UserRole.objects.filter(
-            user=request.user,
-            role__role_name__iexact='менеджер'
-        ).exists()
+        # Use the cached property from User model (it memoizes per request)
+        try:
+            is_manager = bool(getattr(request.user, "is_manager", False))
+        except Exception:
+            is_manager = False
     return {
         "favorite_icon_style": style,
         "theme_preference": theme,

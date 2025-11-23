@@ -970,10 +970,17 @@ def _user_page_size(request, default):
     size = default
     if UserSettings is not None and request.user.is_authenticated:
         try:
-            settings_obj = request.user.usersettings
-            value = settings_obj.page_size or default
-            size = max(1, min(60, int(value)))
-        except (UserSettings.DoesNotExist, ValueError, TypeError):
+            settings_obj = getattr(request.user, "_cached_usersettings", None)
+            if settings_obj is None:
+                try:
+                    settings_obj = request.user.usersettings
+                except UserSettings.DoesNotExist:
+                    settings_obj = None
+                setattr(request.user, "_cached_usersettings", settings_obj)
+            if settings_obj is not None:
+                value = settings_obj.page_size or default
+                size = max(1, min(60, int(value)))
+        except (ValueError, TypeError):
             size = default
     return size
 def _format_with_user_date(request, value):
@@ -982,8 +989,16 @@ def _format_with_user_date(request, value):
     fmt = "%d.%m.%Y %H:%M"
     if UserSettings is not None and request.user.is_authenticated:
         try:
-            fmt = request.user.usersettings.date_format or fmt
-        except UserSettings.DoesNotExist:
+            settings_obj = getattr(request.user, "_cached_usersettings", None)
+            if settings_obj is None:
+                try:
+                    settings_obj = request.user.usersettings
+                except UserSettings.DoesNotExist:
+                    settings_obj = None
+                setattr(request.user, "_cached_usersettings", settings_obj)
+            if settings_obj is not None:
+                fmt = settings_obj.date_format or fmt
+        except Exception:
             fmt = fmt
     try:
         return timezone.localtime(value).strftime(fmt)
