@@ -364,16 +364,22 @@ def catalog_list(request):
             "is_favorite": product.product_id in favorite_ids,
         })
 
+    # Структуры материалов: показываем только при выбранной категории и фильтруем по ней
     structure_values = set()
-    if ProductVariant is not None:
-        for value in ProductVariant.objects.exclude(structure__isnull=True).values_list('structure', flat=True):
+    if ProductVariant is not None and category_param:
+        for value in ProductVariant.objects.filter(
+            product__category__category_id__in=category_param
+        ).exclude(structure__isnull=True).values_list('structure', flat=True).distinct():
             if value:
-                structure_values.add(value.strip())
+                structure_values.add((value or '').strip())
 
     size_groups = []
     if ProductVariant is not None and Category is not None and Sizes is not None:
         group_map = {}
-        size_rows = ProductVariant.objects.filter(size__isnull=False).values(
+        base_qs = ProductVariant.objects.filter(size__isnull=False)
+        if category_param:
+            base_qs = base_qs.filter(product__category__category_id__in=category_param)
+        size_rows = base_qs.values(
             'product__category__category_id',
             'product__category__name',
             'size__size_id',
@@ -396,13 +402,14 @@ def catalog_list(request):
             group["sizes"].sort(key=lambda item: (item["size"] or "").lower())
         size_groups = sorted(group_map.values(), key=lambda item: (item["category_name"] or "").lower())
 
+    # По умолчанию не показываем общий список размеров, только группированный по категории
     filters_data = {
         "categories": Category.objects.all().order_by('name') if Category else [],
         "colors": Colors.objects.all().order_by('name_color') if Colors else [],
-        "sizes": Sizes.objects.all().order_by('size') if Sizes else [],
-        "size_groups": size_groups,
+        "sizes": [],
+        "size_groups": size_groups if category_param else [],
         "stores": Store.objects.all().order_by('name') if Store else [],
-        "structures": sorted(structure_values),
+        "structures": sorted(structure_values) if category_param else [],
         "price": price_bounds,
     }
 
@@ -416,10 +423,15 @@ def catalog_list(request):
         color = next((c for c in filters_data["colors"] if str(c.gemstone_id) == color_id), None)
         if color:
             active_filters.append({"label": f"Цвет: {color.name_color}", "param": "color", "value": color_id})
-    for size_id in size_param:
-        size = next((s for s in filters_data["sizes"] if str(s.size_id) == size_id), None)
-        if size:
-            active_filters.append({"label": f"Размер: {size.size}", "param": "size", "value": size_id})
+    # Для лейбла размера найдём объекты напрямую, чтобы не зависеть от filters_data.sizes
+    if Sizes is not None:
+        for size_id in size_param:
+            try:
+                size_obj = Sizes.objects.filter(pk=size_id).first()
+                if size_obj:
+                    active_filters.append({"label": f"Размер: {getattr(size_obj, 'size', '')}", "param": "size", "value": size_id})
+            except Exception:
+                continue
     for store_id in store_param:
         store = next((s for s in filters_data["stores"] if str(s.store_id) == store_id), None)
         if store:
@@ -482,10 +494,12 @@ def catalog_list(request):
         )
         pagination_html = render_to_string("catalog/partials/pagination.html", {"products_page": page_obj, "base_query": context.get("base_query", "")}, request=request)
         active_filters_html = render_to_string("catalog/partials/active_filters.html", {"active_filters": active_filters}, request=request)
+        filters_html = render_to_string("catalog/partials/filters_panel.html", context, request=request)
         return JsonResponse({
             "products_html": cards_html,
             "pagination_html": pagination_html,
             "active_filters_html": active_filters_html,
+            "filters_html": filters_html,
         })
 
     return render(request, "catalog/catalog_list.html", context)

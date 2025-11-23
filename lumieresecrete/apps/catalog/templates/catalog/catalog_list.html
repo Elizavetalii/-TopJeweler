@@ -17,7 +17,7 @@
     <div class="hero-content">
         <p class="eyebrow">Lumiere Secrète</p>
         <h1>Витрина</h1>
-        <p>Фильтры как в любимых маркетплейсах, быстрый просмотр и избранное.</p>
+        <p>Фильтры как в любимых маркетплейсах и избранное.</p>
         <button class="btn-primary filters-toggle mobile-only" data-filters-toggle>Фильтры</button>
     </div>
 </section>
@@ -26,137 +26,7 @@
 {% block content %}
 <div class="catalog-layout">
     <aside class="filters-panel" data-filters-panel>
-        <form method="get" id="catalog-filter-form" class="filters-form">
-            <div class="filters-form__header">
-                <h2>Фильтры</h2>
-                <button type="button" class="btn-link mobile-only" data-filters-close>Закрыть ✕</button>
-            </div>
-            <input type="hidden" name="page" value="{{ products_page.number }}">
-
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Поиск</button>
-                <div class="filter-group__content">
-                    <input type="search" name="q" placeholder="Название или описание" value="{{ selected.search }}" data-search-input data-hotkey-search>
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Цена</button>
-                <div class="filter-group__content price-range">
-                    <div class="price-range__inputs">
-                        <input type="number" step="0.01" name="price_min" value="{{ selected.price_min }}" data-price-min>
-                        <input type="number" step="0.01" name="price_max" value="{{ selected.price_max }}" data-price-max>
-                    </div>
-                    <div class="price-range__sliders">
-                        <input type="range" min="{{ filters_data.price.min_price|default:0 }}" max="{{ filters_data.price.max_price|default:0 }}" value="{{ selected.price_min|default:filters_data.price.min_price }}" data-slider-min>
-                        <input type="range" min="{{ filters_data.price.min_price|default:0 }}" max="{{ filters_data.price.max_price|default:0 }}" value="{{ selected.price_max|default:filters_data.price.max_price }}" data-slider-max>
-                    </div>
-                </div>
-            </div>
-
-            {% if filters_data.categories %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Категории</button>
-                <div class="filter-group__content">
-                    {% for category in filters_data.categories %}
-                        <label class="checkbox">
-                            <input type="checkbox" name="category" value="{{ category.category_id }}" {% if category.category_id|stringformat:'s' in selected.categories %}checked{% endif %}>
-                            {{ category.name }}
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if filters_data.colors %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Цвет</button>
-                <div class="filter-group__content color-swatches">
-                    {% for color in filters_data.colors %}
-                        <label class="swatch" title="{{ color.name_color }}">
-                            <input type="checkbox" name="color" value="{{ color.gemstone_id }}" {% if color.gemstone_id|stringformat:'s' in selected.colors %}checked{% endif %}>
-                            <span style="background-color: {{ color.color_code|default:'#7d4047' }}"></span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if filters_data.size_groups %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Размер</button>
-                <div class="filter-group__content">
-                    <div class="size-groups">
-                        {% for group in filters_data.size_groups %}
-                        <div class="size-group">
-                            <p class="size-group__title">{{ group.category_name|default:"Без категории" }}</p>
-                            <div class="tags">
-                                {% for size in group.sizes %}
-                                    <label class="tag">
-                                        <input type="checkbox" name="size" value="{{ size.size_id }}" {% if size.size_id|stringformat:'s' in selected.sizes %}checked{% endif %}>
-                                        <span>{{ size.size }}</span>
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% elif filters_data.sizes %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Размер</button>
-                <div class="filter-group__content tags">
-                    {% for size in filters_data.sizes %}
-                        <label class="tag">
-                            <input type="checkbox" name="size" value="{{ size.size_id }}" {% if size.size_id|stringformat:'s' in selected.sizes %}checked{% endif %}>
-                            <span>{{ size.size }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if filters_data.stores %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Магазин</button>
-                <div class="filter-group__content">
-                    {% for store in filters_data.stores %}
-                        <label class="checkbox">
-                            <input type="checkbox" name="store" value="{{ store.store_id }}" {% if store.store_id|stringformat:'s' in selected.stores %}checked{% endif %}>
-                            {{ store.name }}
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if filters_data.structures %}
-            <div class="filter-group">
-                <button type="button" class="filter-group__title" data-accordion>Структура</button>
-                <div class="filter-group__content tags">
-                    {% for structure in filters_data.structures %}
-                        <label class="tag">
-                            <input type="checkbox" name="structure" value="{{ structure }}" {% if structure in selected.structures %}checked{% endif %}>
-                            <span>{{ structure }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="filter-group">
-                <label class="checkbox checkbox--inline">
-                    <input type="checkbox" name="in_stock" value="1" {% if selected.in_stock == '1' %}checked{% endif %}>
-                    Только в наличии
-                </label>
-            </div>
-
-            <div class="filters-actions">
-                <button type="button" class="btn-link" data-clear-filters>Сбросить</button>
-                <button type="submit" class="btn-primary" data-apply-filters>Применить</button>
-            </div>
-        </form>
+        {% include "catalog/partials/filters_panel.html" %}
     </aside>
 
     <section class="products-area">
@@ -188,10 +58,5 @@
 
 <div class="filters-overlay" data-filters-overlay></div>
 
-<div class="quick-view-modal" data-quick-view>
-    <div class="quick-view-modal__content">
-        <button class="quick-view-modal__close" data-quick-close>&times;</button>
-        <div class="quick-view-modal__body js-quick-body"></div>
-    </div>
-</div>
+{# Убран модальный быстрый просмотр #}
 {% endblock %}

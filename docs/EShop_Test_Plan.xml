@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+    <Author>Codex</Author>
+    <LastAuthor>Codex</LastAuthor>
+    <Created>2025-11-20T12:00:00Z</Created>
+    <Company>Lumiere Secrète</Company>
+    <Version>16.00</Version>
+  </DocumentProperties>
+  <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+    <WindowHeight>8000</WindowHeight>
+    <WindowWidth>12000</WindowWidth>
+    <ProtectStructure>False</ProtectStructure>
+    <ProtectWindows>False</ProtectWindows>
+  </ExcelWorkbook>
+  <Styles>
+    <Style ss:ID="sHeader">
+      <Font ss:Bold="1"/>
+      <Interior ss:Color="#DDD5CD" ss:Pattern="Solid"/>
+    </Style>
+    <Style ss:ID="sCenter">
+      <Alignment ss:Horizontal="Center"/>
+    </Style>
+  </Styles>
+
+  <!-- Sheet 1: Общая информация -->
+  <Worksheet ss:Name="Общая информация">
+    <Table>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">Поле</Data></Cell>
+        <Cell><Data ss:Type="String">Значение</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Наименование проекта</Data></Cell>
+        <Cell><Data ss:Type="String">EShop</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Версия проекта</Data></Cell>
+        <Cell><Data ss:Type="String">1.0</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Имя тестировщика</Data></Cell>
+        <Cell><Data ss:Type="String">Синицына Е.Д.</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Дата тестирования</Data></Cell>
+        <Cell><Data ss:Type="String">20.11.2025</Data></Cell>
+      </Row>
+    </Table>
+  </Worksheet>
+
+  <!-- Sheet 2: Описание полей -->
+  <Worksheet ss:Name="Описание полей">
+    <Table>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">Наименование</Data></Cell>
+        <Cell><Data ss:Type="String">Описание</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Наименование проекта</Data></Cell>
+        <Cell><Data ss:Type="String">EShop.ru</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Номер версии</Data></Cell>
+        <Cell><Data ss:Type="String">1.0</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Имя тестера</Data></Cell>
+        <Cell><Data ss:Type="String">Синицына Е.Д.</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">Этапы тестирования</Data></Cell>
+        <Cell><Data ss:Type="String">Требования 11.09.2025; Спецификация 25.09.2025; Тесты и целостность 30.10.2025; Схемы 16.10.2025; Сценарии и результаты 20.11.2025</Data></Cell>
+      </Row>
+    </Table>
+  </Worksheet>
+
+  <!-- Sheet 3: Test Cases -->
+  <Worksheet ss:Name="Test Cases">
+    <Table>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">ID</Data></Cell>
+        <Cell><Data ss:Type="String">Приоритет</Data></Cell>
+        <Cell><Data ss:Type="String">Название</Data></Cell>
+        <Cell><Data ss:Type="String">Предпосылки</Data></Cell>
+        <Cell><Data ss:Type="String">Данные</Data></Cell>
+        <Cell><Data ss:Type="String">Шаги</Data></Cell>
+        <Cell><Data ss:Type="String">Ожидаемый результат</Data></Cell>
+        <Cell><Data ss:Type="String">Фактический результат</Data></Cell>
+        <Cell><Data ss:Type="String">Постусловия</Data></Cell>
+        <Cell><Data ss:Type="String">Статус</Data></Cell>
+        <Cell><Data ss:Type="String">Комментарии</Data></Cell>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_ACC_01</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Вход: валидные данные</Data></Cell>
+        <Cell><Data ss:Type="String">Есть пользователь buyer@example.com</Data></Cell>
+        <Cell><Data ss:Type="String">email=buyer@example.com; pass=Password123!</Data></Cell>
+        <Cell><Data ss:Type="String">Открыть «Вход» → ввести → «Войти»</Data></Cell>
+        <Cell><Data ss:Type="String">Успех, переход в каталог</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Сессия активна</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_ACC_02</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Вход: неверный пароль</Data></Cell>
+        <Cell><Data ss:Type="String">—</Data></Cell>
+        <Cell><Data ss:Type="String">email=buyer@example.com; pass=Wrong123!</Data></Cell>
+        <Cell><Data ss:Type="String">«Вход» → «Войти»</Data></Cell>
+        <Cell><Data ss:Type="String">Сообщение: «Неверный email или пароль.»</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Остаёмся на странице входа</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_ACC_04</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Регистрация: валидно</Data></Cell>
+        <Cell><Data ss:Type="String">Не авторизованы</Data></Cell>
+        <Cell><Data ss:Type="String">уникальный email; валидный пароль; confirm совпадает</Data></Cell>
+        <Cell><Data ss:Type="String">Открыть «Регистрация» → заполнить → отправить</Data></Cell>
+        <Cell><Data ss:Type="String">Создан user, роль «Клиент», вход и переход в каталог</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Аккаунт создан</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_CAT_10</Data></Cell>
+        <Cell><Data ss:Type="String">Средний</Data></Cell>
+        <Cell><Data ss:Type="String">Карточка товара с вариантами</Data></Cell>
+        <Cell><Data ss:Type="String">Есть товар с ProductVariants</Data></Cell>
+        <Cell><Data ss:Type="String">id товара существующий</Data></Cell>
+        <Cell><Data ss:Type="String">Открыть /catalog/&lt;id&gt;/</Data></Cell>
+        <Cell><Data ss:Type="String">Галерея/цены/характеристики отображаются</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Остаёмся на карточке</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_FAV_01</Data></Cell>
+        <Cell><Data ss:Type="String">Средний</Data></Cell>
+        <Cell><Data ss:Type="String">Избранное: тоггл (авторизован)</Data></Cell>
+        <Cell><Data ss:Type="String">Пользователь вошёл</Data></Cell>
+        <Cell><Data ss:Type="String">product_id существующий</Data></Cell>
+        <Cell><Data ss:Type="String">POST /catalog/&lt;id&gt;/favorite/</Data></Cell>
+        <Cell><Data ss:Type="String">Добавление/удаление записи в Favorites</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Счётчик обновлён</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_CART_01</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Добавление в корзину (форма)</Data></Cell>
+        <Cell><Data ss:Type="String">Авторизован; есть ProductVariant</Data></Cell>
+        <Cell><Data ss:Type="String">product_variant_id; quantity=1</Data></Cell>
+        <Cell><Data ss:Type="String">POST /cart/add/</Data></Cell>
+        <Cell><Data ss:Type="String">Позиция создана в CartItems</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Позия доступна в корзине</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_CART_06</Data></Cell>
+        <Cell><Data ss:Type="String">Средний</Data></Cell>
+        <Cell><Data ss:Type="String">Обновление количества</Data></Cell>
+        <Cell><Data ss:Type="String">Есть item_id</Data></Cell>
+        <Cell><Data ss:Type="String">quantity=N</Data></Cell>
+        <Cell><Data ss:Type="String">POST /cart/update/&lt;item_id&gt;/</Data></Cell>
+        <Cell><Data ss:Type="String">Количество изменено/удалено при N≤0</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Totals пересчитаны</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_PROMO_01</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Промокод: валидный</Data></Cell>
+        <Cell><Data ss:Type="String">Сумма корзины &gt;= мин.</Data></Cell>
+        <Cell><Data ss:Type="String">promo=CODE</Data></Cell>
+        <Cell><Data ss:Type="String">POST /cart/promo/</Data></Cell>
+        <Cell><Data ss:Type="String">Скидка применена, total уменьшен</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Код сохранён в сессии</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_CHK_01</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Оформление: доставка, оплата сейчас</Data></Cell>
+        <Cell><Data ss:Type="String">Есть позиции в корзине</Data></Cell>
+        <Cell><Data ss:Type="String">Обязательные поля + валидная карта</Data></Cell>
+        <Cell><Data ss:Type="String">POST /cart/checkout/</Data></Cell>
+        <Cell><Data ss:Type="String">Созданы Orders/OrderItems; подтверждение</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">Корзина очищена</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_ORD_04</Data></Cell>
+        <Cell><Data ss:Type="String">Средний</Data></Cell>
+        <Cell><Data ss:Type="String">PDF чек владельца</Data></Cell>
+        <Cell><Data ss:Type="String">Есть заказ пользователя</Data></Cell>
+        <Cell><Data ss:Type="String">order_id</Data></Cell>
+        <Cell><Data ss:Type="String">GET /orders/&lt;id&gt;/receipt/</Data></Cell>
+        <Cell><Data ss:Type="String">application/pdf; корректное имя</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">—</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+      <Row>
+        <Cell><Data ss:Type="String">TC_ADM_02</Data></Cell>
+        <Cell><Data ss:Type="String">Высокий</Data></Cell>
+        <Cell><Data ss:Type="String">Создание бэкапа (staff)</Data></Cell>
+        <Cell><Data ss:Type="String">Пользователь staff</Data></Cell>
+        <Cell><Data ss:Type="String">—</Data></Cell>
+        <Cell><Data ss:Type="String">POST /admin-tools/maintenance/ (backup)</Data></Cell>
+        <Cell><Data ss:Type="String">Файл выгружен; запись в Backups</Data></Cell>
+        <Cell/>
+        <Cell><Data ss:Type="String">—</Data></Cell>
+        <Cell/>
+        <Cell/>
+      </Row>
+    </Table>
+  </Worksheet>
+
+  <!-- Sheet 4: Тестовые данные -->
+  <Worksheet ss:Name="Тестовые данные">
+    <Table>
+      <Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">Users</Data></Cell></Row>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">email</Data></Cell>
+        <Cell><Data ss:Type="String">password</Data></Cell>
+        <Cell><Data ss:Type="String">first_name</Data></Cell>
+        <Cell><Data ss:Type="String">last_name</Data></Cell>
+        <Cell><Data ss:Type="String">role</Data></Cell>
+      </Row>
+      <Row><Cell><Data ss:Type="String">buyer@example.com</Data></Cell><Cell><Data ss:Type="String">Password123!</Data></Cell><Cell><Data ss:Type="String">Иван</Data></Cell><Cell><Data ss:Type="String">Покупатель</Data></Cell><Cell><Data ss:Type="String">Клиент</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="String">manager@example.com</Data></Cell><Cell><Data ss:Type="String">Password123!</Data></Cell><Cell><Data ss:Type="String">Ольга</Data></Cell><Cell><Data ss:Type="String">Менеджер</Data></Cell><Cell><Data ss:Type="String">Менеджер</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="String">staff@example.com</Data></Cell><Cell><Data ss:Type="String">Password123!</Data></Cell><Cell><Data ss:Type="String">Админ</Data></Cell><Cell><Data ss:Type="String">Дж.</Data></Cell><Cell><Data ss:Type="String">staff</Data></Cell></Row>
+
+      <Row/><Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">Categories</Data></Cell></Row>
+      <Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">id</Data></Cell><Cell><Data ss:Type="String">name</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">1</Data></Cell><Cell><Data ss:Type="String">Колье</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">2</Data></Cell><Cell><Data ss:Type="String">Серьги</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">3</Data></Cell><Cell><Data ss:Type="String">Браслеты</Data></Cell></Row>
+
+      <Row/><Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">Products</Data></Cell></Row>
+      <Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">id</Data></Cell><Cell><Data ss:Type="String">name</Data></Cell><Cell><Data ss:Type="String">category_id</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">101</Data></Cell><Cell><Data ss:Type="String">Колье Lumière</Data></Cell><Cell><Data ss:Type="Number">1</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">102</Data></Cell><Cell><Data ss:Type="String">Серьги Étoile</Data></Cell><Cell><Data ss:Type="Number">2</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">103</Data></Cell><Cell><Data ss:Type="String">Браслет Secret</Data></Cell><Cell><Data ss:Type="Number">3</Data></Cell></Row>
+
+      <Row/><Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">ProductVariants</Data></Cell></Row>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">product_id</Data></Cell>
+        <Cell><Data ss:Type="String">price</Data></Cell>
+        <Cell><Data ss:Type="String">quantity</Data></Cell>
+        <Cell><Data ss:Type="String">color_name</Data></Cell>
+        <Cell><Data ss:Type="String">size_label</Data></Cell>
+        <Cell><Data ss:Type="String">store_id</Data></Cell>
+      </Row>
+      <Row><Cell><Data ss:Type="Number">101</Data></Cell><Cell><Data ss:Type="Number">7990</Data></Cell><Cell><Data ss:Type="Number">5</Data></Cell><Cell><Data ss:Type="String">Вино</Data></Cell><Cell><Data ss:Type="String">One Size</Data></Cell><Cell><Data ss:Type="Number">1</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">102</Data></Cell><Cell><Data ss:Type="Number">5590</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell><Cell><Data ss:Type="String">Уголь</Data></Cell><Cell><Data ss:Type="String">S</Data></Cell><Cell><Data ss:Type="Number">1</Data></Cell></Row>
+      <Row><Cell><Data ss:Type="Number">103</Data></Cell><Cell><Data ss:Type="Number">4590</Data></Cell><Cell><Data ss:Type="Number">12</Data></Cell><Cell><Data ss:Type="String">Песок</Data></Cell><Cell><Data ss:Type="String">M</Data></Cell><Cell><Data ss:Type="Number">2</Data></Cell></Row>
+
+      <Row/><Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">PromoCodes</Data></Cell></Row>
+      <Row ss:StyleID="sHeader">
+        <Cell><Data ss:Type="String">code</Data></Cell>
+        <Cell><Data ss:Type="String">description</Data></Cell>
+        <Cell><Data ss:Type="String">discount_percent</Data></Cell>
+        <Cell><Data ss:Type="String">discount_amount</Data></Cell>
+        <Cell><Data ss:Type="String">min_order_total</Data></Cell>
+        <Cell><Data ss:Type="String">valid_from</Data></Cell>
+        <Cell><Data ss:Type="String">valid_to</Data></Cell>
+      </Row>
+      <Row><Cell><Data ss:Type="String">WELCOME10</Data></Cell><Cell><Data ss:Type="String">-10% новичкам</Data></Cell><Cell><Data ss:Type="Number">10</Data></Cell><Cell/><Cell><Data ss:Type="Number">0</Data></Cell><Cell/><Cell/></Row>
+      <Row><Cell><Data ss:Type="String">VIP500</Data></Cell><Cell><Data ss:Type="String">-500₽ на заказ</Data></Cell><Cell/><Cell><Data ss:Type="Number">500</Data></Cell><Cell><Data ss:Type="Number">3000</Data></Cell><Cell/><Cell/></Row>
+      <Row><Cell><Data ss:Type="String">BLACK15</Data></Cell><Cell><Data ss:Type="String">Black Friday</Data></Cell><Cell><Data ss:Type="Number">15</Data></Cell><Cell/><Cell><Data ss:Type="Number">2000</Data></Cell><Cell><Data ss:Type="String">2025-11-15T00:00:00</Data></Cell><Cell><Data ss:Type="String">2025-11-30T23:59:00</Data></Cell></Row>
+    </Table>
+  </Worksheet>
+
+</Workbook>
+

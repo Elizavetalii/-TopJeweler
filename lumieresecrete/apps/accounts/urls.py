@@ -1,7 +1,14 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from .views import register_view, login_view, logout_view, profile_view, notifications_mark_read
+from .views import (
+    register_view,
+    login_view,
+    logout_view,
+    profile_view,
+    notifications_mark_read,
+    update_theme,
+)
 
 app_name = 'accounts'
 
@@ -47,4 +54,5 @@ urlpatterns = [
         notifications_mark_read,
         name='notifications_mark_read',
     ),
+    path('theme/', update_theme, name='update_theme'),
 ]

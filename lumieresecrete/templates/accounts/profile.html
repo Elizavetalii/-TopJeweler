@@ -208,5 +208,28 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+
+// Тема сайта применяется от серверного предпочтения пользователя (UserSettings.theme)
+// Локально применяем выбор селекта сразу, чтобы пользователь видел эффект до сохранения
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    const form = document.querySelector('form.profile-form input[name="intent"][value="settings"]')?.closest('form');
+    if (!form) return;
+    const select = form.querySelector('select[name="theme"], [name="theme"]');
+    const apply = function(theme){
+      var dark = theme === 'dark';
+      document.documentElement.classList.toggle('pref-theme-dark', dark);
+      document.body.classList.toggle('pref-theme-dark', dark);
+    };
+    if (select){
+      apply(select.value === 'dark' ? 'dark' : 'light');
+      select.addEventListener('change', function(){
+        const t = select.value === 'dark' ? 'dark' : 'light';
+        apply(t);
+        try { localStorage.setItem('ls-theme', t); } catch(e){}
+      });
+    }
+  } catch(e){}
+});
 </script>
 {% endblock %}

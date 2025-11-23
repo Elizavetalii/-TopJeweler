@@ -1,0 +1,15 @@
+__pycache__
+*.py[cod]
+*.log
+.pytest_cache
+.mypy_cache
+.DS_Store
+.git
+venv
+.venv
+node_modules
+staticfiles
+data
+Dockerfile 2
+requirements 2.txt
+.gitignore 2

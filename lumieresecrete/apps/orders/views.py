@@ -475,9 +475,10 @@ def _receipt_context(order: Order, request, public=False):
     subtotal = sum(Decimal(item['subtotal']) for item in items)
     discount = getattr(order, 'discount_amount', Decimal('0'))
     taxable_subtotal = max(Decimal('0'), subtotal - discount)
-    tax = taxable_subtotal * Decimal('0.10')
+    # Налог не применяется — цены окончательные
+    tax = Decimal('0.00')
     shipping = Decimal('0.00')
-    total = taxable_subtotal + tax + shipping
+    total = taxable_subtotal + shipping
     detail_url = request.build_absolute_uri(reverse('orders:order_detail', args=[order.order_id]))
     qr_target = detail_url if not public else request.build_absolute_uri(request.path.replace('/receipt/', '/'))
     customer_name = ''
@@ -516,6 +517,11 @@ def _ensure_weasyprint():
 
 
 def _render_receipt_pdf(order: Order, request, public=False):
+    """Render receipt to PDF using WeasyPrint.
+
+    If WeasyPrint or system libs are unavailable, the caller can choose to
+    fall back to HTML (handled in the view). This function will raise on error.
+    """
     _ensure_weasyprint()
     context = _receipt_context(order, request, public=public)
     html = render_to_string('orders/receipt.html', context)
@@ -526,12 +532,20 @@ def _render_receipt_pdf(order: Order, request, public=False):
 @login_required(login_url='accounts:login')
 def order_receipt_pdf(request, order_id: int):
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
-    pdf = _render_receipt_pdf(order, request)
     inline = request.GET.get('inline') == '1'
-    response = HttpResponse(pdf, content_type='application/pdf')
-    disposition = 'inline' if inline else 'attachment'
-    response['Content-Disposition'] = f"{disposition}; filename=receipt_{order_id}.pdf"
-    return response
+    try:
+        pdf = _render_receipt_pdf(order, request)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        disposition = 'inline' if inline else 'attachment'
+        response['Content-Disposition'] = f"{disposition}; filename=receipt_{order_id}.pdf"
+        return response
+    except Exception as exc:
+        # Fallback to HTML representation so пользователь не видит 500
+        context = _receipt_context(order, request, public=False)
+        html = render_to_string('orders/receipt.html', context)
+        if settings.DEBUG:
+            html = f"<!-- PDF generation error: {exc} -->\n" + html
+        return HttpResponse(html)
 
 
 def order_receipt_public(request, order_id: int, token: str):
@@ -539,10 +553,17 @@ def order_receipt_public(request, order_id: int, token: str):
     if share_token.expires_at < timezone.now():
         return HttpResponseForbidden("Ссылка больше не активна")
     order = share_token.order
-    pdf = _render_receipt_pdf(order, request, public=True)
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f"inline; filename=receipt_{order_id}.pdf"
-    return response
+    try:
+        pdf = _render_receipt_pdf(order, request, public=True)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f"inline; filename=receipt_{order_id}.pdf"
+        return response
+    except Exception as exc:
+        context = _receipt_context(order, request, public=True)
+        html = render_to_string('orders/receipt.html', context)
+        if settings.DEBUG:
+            html = f"<!-- PDF generation error: {exc} -->\n" + html
+        return HttpResponse(html)
 
 
 def _create_share_token(order: Order, channel: Optional[str] = None) -> OrderShareToken:

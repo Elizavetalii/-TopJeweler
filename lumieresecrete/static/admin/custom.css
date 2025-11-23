@@ -336,3 +336,50 @@ input[type=button],
   color: var(--link);
 }
 
+/* --- Strong overrides to prevent OS dark mode from bleeding into admin when theme=light --- */
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+/* Containers & toolbars */
+:root[data-theme='light'] #nav-sidebar,
+:root[data-theme='light'] #content,
+:root[data-theme='light'] #content-main,
+:root[data-theme='light'] .app-list,
+:root[data-theme='light'] .module,
+:root[data-theme='light'] .paginator,
+:root[data-theme='light'] .actions,
+:root[data-theme='light'] .object-tools,
+:root[data-theme='light'] #changelist-search,
+:root[data-theme='light'] .change-list .results {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+}
+
+/* Sidebar gradient in light theme */
+:root[data-theme='light'] #nav-sidebar {
+  background: linear-gradient(120deg, var(--panel-alt), var(--panel)) !important;
+}
+
+/* Inputs (search/action bars) */
+:root[data-theme='light'] input,
+:root[data-theme='light'] select,
+:root[data-theme='light'] textarea {
+  background: #fff !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Table headers/rows */
+:root[data-theme='light'] .module table th {
+  background: var(--panel-alt) !important; color: var(--text) !important;
+}
+:root[data-theme='light'] .module table td {
+  background: rgba(255,255,255,0.9) !important; color: var(--text) !important;
+}
+:root[data-theme='light'] .module table tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,0.7) !important;
+}
+
+/* Breadcrumbs */
+:root[data-theme='light'] .breadcrumbs,
+:root[data-theme='light'] .breadcrumbs a { color: var(--text-muted) !important; }

@@ -15,6 +15,9 @@ venv/
 # Django collected static
 staticfiles/
 
+# Docker / compose runtime data
+data/
+
 # Logs
 *.log
 
@@ -34,3 +37,7 @@ coverage.xml
 # Node / front-end
 node_modules/
 dist/
+
+# Local duplicate backups/copies created by Finder
+* 2
+* 2.*

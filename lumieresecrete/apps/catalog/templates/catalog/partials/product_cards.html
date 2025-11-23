@@ -10,20 +10,7 @@
             {% if product.has_sale %}<span class="badge badge-sale">Sale</span>{% endif %}
             {% if not product.in_stock %}<span class="badge badge-out">Ожидаем</span>{% endif %}
         </div>
-        <div class="product-card__actions">
-            <button
-                type="button"
-                class="favorite-btn {% if product.is_favorite %}is-active{% endif %}"
-                data-favorite-toggle
-                data-product-id="{{ product.id }}"
-                data-url="{{ product.favorite_url }}"
-                aria-pressed="{{ product.is_favorite|yesno:'true,false' }}"
-                aria-label="{% if product.is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
-            >
-                <span class="heart-icon" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="quick-view-btn" data-quick-view-target data-product-id="{{ product.id }}" data-quick-url="{{ product.quick_view_url }}?format=json">Быстрый просмотр</button>
-        </div>
+        {# Убрали быстрый просмотр; избранное будет внизу рядом с Подробнее #}
     </div>
     <div class="product-card__body">
         <p class="product-category">{{ product.category }}</p>
@@ -58,7 +45,20 @@
         {% endif %}
     </div>
     <div class="product-card__footer">
-        <a class="btn-primary" href="{{ product.detail_url }}">Подробнее</a>
+        <div class="product-card__footer-actions">
+            <a class="btn-primary" href="{{ product.detail_url }}">Подробнее</a>
+            <button
+                type="button"
+                class="favorite-btn favorite-btn--inline {% if product.is_favorite %}is-active{% endif %}"
+                data-favorite-toggle
+                data-product-id="{{ product.id }}"
+                data-url="{{ product.favorite_url }}"
+                aria-pressed="{{ product.is_favorite|yesno:'true,false' }}"
+                aria-label="{% if product.is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+            >
+                <span class="heart-icon" aria-hidden="true"></span>
+            </button>
+        </div>
     </div>
 </article>
 {% empty %}

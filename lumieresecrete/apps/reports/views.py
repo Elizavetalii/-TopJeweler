@@ -17,12 +17,13 @@ from django.db import connections
 from django.db.models import Sum
 from openpyxl import Workbook
 
-from apps.orders.models import Order, OrderItem
+from apps.orders.models import Order, OrderItem, OrderShareToken, Status
 from apps.catalog.models import Product, Category, ProductReview
 from apps.stores.models import Store
 from apps.product_variants.models import ProductVariant
 from apps.accounts.models import UserRole
-from apps.orders.views import _parse_order_datetime
+from apps.orders.views import _parse_order_datetime, _render_receipt_pdf
+from apps.orders.services import OrderService
 
 PERIOD_CHOICES = {
     '7d': ('Последние 7 дней', 7),
@@ -433,3 +434,102 @@ def manager_reviews(request):
         'all_count': all_count,
     }
     return render(request, 'reports/manager_reviews.html', context)
+
+
+# ============================
+# Менеджер: обработка заказов
+# ============================
+
+@login_required
+def manager_orders(request):
+    if not _user_is_manager(request.user):
+        return HttpResponseForbidden("Недостаточно прав.")
+    qs = (
+        Order.objects.select_related('user', 'status', 'store')
+        .order_by('-order_id')
+    )
+    order_id = (request.GET.get('order_id') or '').strip()
+    client = (request.GET.get('client') or '').strip()
+    status_id = (request.GET.get('status') or '').strip()
+    date_from = request.GET.get('from')
+    date_to = request.GET.get('to')
+    if order_id:
+        qs = qs.filter(order_id=order_id)
+    if client:
+        qs = qs.filter(user__username__icontains=client) | qs.filter(user__email__icontains=client)
+    if status_id:
+        qs = qs.filter(status__status_id=status_id)
+    # дата создаётся в varchar, поэтому фильтруем в python
+    start = _parse_input_date(date_from)
+    end = _parse_input_date(date_to)
+    orders = []
+    for o in qs[:300]:
+        dt = _parse_order_datetime(o.created_at)
+        if start and dt and dt < start:
+            continue
+        if end and dt and dt > end:
+            continue
+        orders.append(o)
+    statuses = Status.objects.all().order_by('name_status')
+    return render(request, 'reports/manager_orders.html', {
+        'orders': orders,
+        'statuses': statuses,
+        'filters': {
+            'order_id': order_id,
+            'client': client,
+            'status': status_id,
+            'from': date_from or '',
+            'to': date_to or '',
+        }
+    })
+
+
+@login_required
+def manager_order_detail(request, order_id: int):
+    if not _user_is_manager(request.user):
+        return HttpResponseForbidden("Недостаточно прав.")
+    order = get_object_or_404(
+        Order.objects.select_related('user', 'status', 'store').prefetch_related(
+            'orderitem_set__product_variant__product',
+            'orderitem_set__product_variant__color',
+            'orderitem_set__product_variant__size'
+        ),
+        order_id=order_id,
+    )
+    items = order.orderitem_set.all()
+    statuses = Status.objects.all().order_by('name_status')
+    return render(request, 'reports/manager_order_detail.html', {
+        'order': order,
+        'items': items,
+        'statuses': statuses,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def manager_order_status(request, order_id: int):
+    if not _user_is_manager(request.user):
+        return HttpResponseForbidden("Недостаточно прав.")
+    status_id = request.POST.get('status')
+    try:
+        OrderService.update_order_status(order_id, status_id)
+        messages.success(request, "Статус заказа обновлён.")
+    except Exception as exc:
+        messages.error(request, f"Не удалось обновить статус: {exc}")
+    next_url = request.POST.get('next') or reverse('reports:manager_order_detail', args=[order_id])
+    return redirect(next_url)
+
+
+@login_required
+def manager_order_receipt(request, order_id: int):
+    if not _user_is_manager(request.user):
+        return HttpResponseForbidden("Недостаточно прав.")
+    order = get_object_or_404(Order, order_id=order_id)
+    try:
+        pdf = _render_receipt_pdf(order, request, public=False)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f"attachment; filename=receipt_{order_id}.pdf"
+        return response
+    except Exception as exc:
+        messages.error(request, f"PDF недоступен: {exc}")
+        return redirect('reports:manager_order_detail', order_id=order_id)

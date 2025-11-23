@@ -12,4 +12,9 @@ urlpatterns = [
     path('manager/export/', views.manager_export, name='manager_export'),
     path('manager/reviews/', views.manager_reviews, name='manager_reviews'),
     path('manager/reviews/<int:pk>/', views.manager_review_action, name='manager_review_action'),
+    # Менеджер: обработка заказов (специальные страницы)
+    path('manager/orders/', views.manager_orders, name='manager_orders'),
+    path('manager/orders/<int:order_id>/', views.manager_order_detail, name='manager_order_detail'),
+    path('manager/orders/<int:order_id>/status/', views.manager_order_status, name='manager_order_status'),
+    path('manager/orders/<int:order_id>/receipt/', views.manager_order_receipt, name='manager_order_receipt'),
 ]

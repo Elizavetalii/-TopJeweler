@@ -5,6 +5,18 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<script>
+// Apply user profile theme for all admin pages before CSS loads
+(function(){
+  try {
+    var pref = '{{ theme_preference|default:"light" }}';
+    var mode = (pref === 'dark') ? 'dark' : 'light';
+    var root = document.documentElement;
+    root.dataset.theme = mode;
+    root.classList.toggle('pref-theme-dark', mode === 'dark');
+  } catch(e) {}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -68,37 +80,7 @@
 </style>
 {% endblock %}
 
-{% block extrahead %}
-{{ block.super }}
-<script>
-(function () {
-    const storageKey = 'ls-admin-theme';
-    const root = document.documentElement;
-    const applyTheme = (theme) => {
-        root.dataset.theme = theme;
-    };
-    const saved = localStorage.getItem(storageKey) || 'light';
-    applyTheme(saved);
-
-    function updateButton(btn, theme) {
-        if (btn) {
-            btn.textContent = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggleBtn = document.getElementById('theme-toggle');
-        updateButton(toggleBtn, saved);
-        toggleBtn?.addEventListener('click', () => {
-            const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
-            applyTheme(nextTheme);
-            localStorage.setItem(storageKey, nextTheme);
-            updateButton(toggleBtn, nextTheme);
-        });
-    });
-})();
-</script>
-{% endblock %}
+{% block extrahead %}{{ block.super }}{% endblock %}
 
 {% block branding %}
 <div class="ls-admin-brand">
@@ -180,3 +162,34 @@
     };
 </script>
 <script src="{% static 'catalog/hotkeys.js' %}" defer></script>
+<script>
+// Admin theme toggle persists to user profile and applies immediately
+(function(){
+  function getCookie(name){
+    var m=document.cookie.match('(?:^|; )'+name.replace(/([.$?*|{}()\[\]\\\/\+^])/g,'\\$1')+'=([^;]*)');
+    return m?decodeURIComponent(m[1]):'';
+  }
+  var toggle = document.getElementById('theme-toggle');
+  if(!toggle) return;
+  var root = document.documentElement;
+  var current = '{{ theme_preference|default:"light" }}' === 'dark' ? 'dark':'light';
+  function label(){ toggle.textContent = (root.dataset.theme==='dark')?'Светлая тема':'Тёмная тема'; }
+  function apply(t){ root.dataset.theme=t; root.classList.toggle('pref-theme-dark', t==='dark'); try{ localStorage.setItem('ls-theme', t);}catch(e){} label(); }
+  apply(current);
+  toggle.addEventListener('click', function(){
+    var next = (root.dataset.theme==='dark')?'light':'dark';
+    apply(next);
+    fetch('{% url "accounts:update_theme" %}',{
+      method:'POST',
+      headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
+      body:'theme='+encodeURIComponent(next)
+    }).catch(function(){});
+  });
+  // If theme is changed on the site (profile) in another tab, reflect it here
+  try{
+    window.addEventListener('storage', function(ev){
+      if(ev.key==='ls-theme' && ev.newValue){ apply(ev.newValue==='dark'?'dark':'light'); }
+    });
+  }catch(e){}
+})();
+</script>

@@ -2154,6 +2154,17 @@ body.pref-theme-dark .toolbar-info select {
   width: 100%;
 }
 
+/* Размещение избранного рядом с кнопкой Подробнее */
+.product-card__footer-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.product-card__footer-actions .btn-primary {
+  width: auto;
+  flex: 1 1 auto;
+}
+
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;

@@ -17,27 +17,10 @@ const catalog = {
     this.bindEvents();
   },
   bindEvents(){
-    if(!this.form) return;
-    this.form.addEventListener('change', debounce(()=>this.submitFilters(),200));
-    const searchInput = this.form.querySelector('[data-search-input]');
-    searchInput?.addEventListener('input', debounce(()=>this.submitFilters(),400));
-    this.form.querySelectorAll('[data-slider-min],[data-slider-max]').forEach(slider=>{
-      slider.addEventListener('input', ()=>{
-        const min = this.form.querySelector('[data-slider-min]').value;
-        const max = this.form.querySelector('[data-slider-max]').value;
-        this.form.querySelector('[data-price-min]').value = min;
-        this.form.querySelector('[data-price-max]').value = max;
-      });
-      slider.addEventListener('change', ()=>this.submitFilters());
-    });
-    qsa('[data-accordion]').forEach(btn=>btn.addEventListener('click',()=>btn.parentElement.classList.toggle('is-open')));
-    const toggle = qs('[data-filters-toggle]');
-    toggle?.addEventListener('click', ()=>this.openDrawer());
-    qs('[data-filters-close]')?.addEventListener('click', ()=>this.closeDrawer());
-    this.overlay?.addEventListener('click', (e)=>{ if(e.target===this.overlay) this.closeDrawer(); });
+    this.bindFilterPanel();
     this.desktopToggle?.addEventListener('click', ()=>this.handleToggleClick());
+    // chips live outside panel and will be re-rendered after partial
     qsa('[data-remove-filter]').forEach(chip=>chip.addEventListener('click',()=>this.removeFilter(chip)));
-    qs('[data-clear-filters]')?.addEventListener('click', ()=>{ this.form.reset(); this.submitFilters(); });
     this.bindPagination();
     const closeQuick = ()=>this.closeQuick();
     qs('[data-quick-close]')?.addEventListener('click', closeQuick);
@@ -56,6 +39,28 @@ const catalog = {
       mq.addListener(()=>this.updateToggleLabel());
     }
     this.updateToggleLabel();
+  },
+  bindFilterPanel(){
+    this.form = qs('#catalog-filter-form');
+    if(!this.form) return;
+    this.form.addEventListener('change', debounce(()=>this.submitFilters(),200));
+    const searchInput = this.form.querySelector('[data-search-input]');
+    searchInput?.addEventListener('input', debounce(()=>this.submitFilters(),400));
+    this.form.querySelectorAll('[data-slider-min],[data-slider-max]').forEach(slider=>{
+      slider.addEventListener('input', ()=>{
+        const min = this.form.querySelector('[data-slider-min]').value;
+        const max = this.form.querySelector('[data-slider-max]').value;
+        this.form.querySelector('[data-price-min]').value = min;
+        this.form.querySelector('[data-price-max]').value = max;
+      });
+      slider.addEventListener('change', ()=>this.submitFilters());
+    });
+    qsa('[data-accordion]', this.form).forEach(btn=>btn.addEventListener('click',()=>btn.parentElement.classList.toggle('is-open')));
+    const toggle = qs('[data-filters-toggle]');
+    toggle?.addEventListener('click', ()=>this.openDrawer());
+    qs('[data-filters-close]')?.addEventListener('click', ()=>this.closeDrawer());
+    this.overlay?.addEventListener('click', (e)=>{ if(e.target===this.overlay) this.closeDrawer(); });
+    qs('[data-clear-filters]')?.addEventListener('click', ()=>{ this.form.reset(); this.submitFilters(); });
   },
   openDrawer(){
     this.filtersPanel?.classList.add('is-open');
@@ -109,6 +114,10 @@ const catalog = {
       if(this.grid) this.grid.innerHTML = data.products_html;
       if(this.pagination) this.pagination.innerHTML = data.pagination_html;
       if(this.activeFiltersBox) this.activeFiltersBox.innerHTML = data.active_filters_html;
+      if(data.filters_html && this.filtersPanel){
+        this.filtersPanel.innerHTML = data.filters_html;
+        this.bindFilterPanel();
+      }
       this.bindPagination();
       this.attachQuick();
     } catch(err){ console.error('filter error', err); }

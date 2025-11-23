@@ -136,6 +136,32 @@ def profile_view(request):
 def notifications_mark_read(request):
     OrderNotification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_theme(request):
+    """Lightweight endpoint to persist user's theme from admin toggle or site.
+    Expected POST body form-encoded or JSON with key 'theme' in {'light','dark'}.
+    Returns JSON with the saved theme.
+    """
+    theme = (request.POST.get('theme') or request.body.decode('utf-8') or '').lower()
+    if 'dark' in theme:
+        value = 'dark'
+    elif 'light' in theme:
+        value = 'light'
+    else:
+        # Try JSON parse
+        try:
+            import json
+            payload = json.loads(request.body.decode() or '{}')
+            value = 'dark' if (payload.get('theme') == 'dark') else 'light'
+        except Exception:
+            value = 'light'
+    settings_obj, _ = UserSettings.objects.get_or_create(user=request.user)
+    settings_obj.theme = value
+    settings_obj.save(update_fields=['theme'])
+    return JsonResponse({'status': 'ok', 'theme': value})
 def _format_user_datetime(user, value):
     if not value:
         return "—"

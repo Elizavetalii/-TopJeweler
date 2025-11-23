@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Заказ #{{ order.order_id }} — Менеджер{% endblock %}
+{% block content %}
+<section class="order-detail">
+  <div class="section-head">
+    <h2>Заказ #{{ order.order_id }}</h2>
+    <span class="muted">Статус: {{ order.status.name_status|default:"—" }}</span>
+  </div>
+
+  <div class="order-actions" style="margin-bottom:1rem">
+    <form method="post" action="{% url 'reports:manager_order_status' order.order_id %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+      <label>
+        <span>Изменить статус</span>
+        <select name="status">
+          {% for st in statuses %}
+            <option value="{{ st.status_id }}" {% if order.status_id == st.status_id %}selected{% endif %}>{{ st.name_status }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="btn-primary" type="submit">Сохранить</button>
+      <a class="btn-link" href="{% url 'reports:manager_order_receipt' order.order_id %}">Скачать PDF чек</a>
+    </form>
+  </div>
+
+  <div class="order-summary module" style="padding:1rem; margin-bottom:1rem">
+    <p><strong>Клиент:</strong> {{ order.user.username|default:order.user.email }}</p>
+    <p><strong>Магазин:</strong> {{ order.store.name|default:"—" }}</p>
+    <p><strong>Создан:</strong> {{ order.created_at }}</p>
+    <p><strong>Итого:</strong> {{ order.total_amount }}</p>
+  </div>
+
+  <div class="order-items">
+    <h3>Позиции</h3>
+    <table class="module" style="width:100%">
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Цвет</th>
+          <th>Размер</th>
+          <th>Кол-во</th>
+          <th>Цена</th>
+          <th>Сумма</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>{{ it.product_variant.product.name }}</td>
+          <td>{{ it.product_variant.color.name_color|default:"—" }}</td>
+          <td>{{ it.product_variant.size.size|default:"—" }}</td>
+          <td>{{ it.quantity }}</td>
+          <td>{{ it.price }}</td>
+          <td>{% widthratio it.price 1 it.quantity %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

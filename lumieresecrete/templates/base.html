@@ -5,6 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Lumiere Secrète{% endblock %}</title>
+    <script>
+      // Apply server theme immediately so CSS loads in correct variant
+      (function(){
+        var t = '{{ theme_preference|default:"light" }}';
+        var dark = (t === 'dark');
+        try { document.documentElement.classList.toggle('pref-theme-dark', dark); } catch(e) {}
+        document.addEventListener('DOMContentLoaded', function(){
+          try { document.body.classList.toggle('pref-theme-dark', dark); } catch(e) {}
+        });
+      })();
+    </script>
+    <script>
+      // Keep a copy of server theme in localStorage for any legacy scripts
+      (function(){
+        try {
+          var t = '{{ theme_preference|default:"light" }}';
+          localStorage.setItem('ls-theme', t);
+        } catch(e) {}
+      })();
+    </script>
     <link rel="stylesheet" href="{% static 'catalog/catalog.css' %}?v=20251115">
     {% block extra_css %}{% endblock %}
 </head>
@@ -16,6 +36,7 @@
                 {% if request.user.is_authenticated and is_privileged %}
                     {% if is_manager %}
                     <a href="{% url 'reports:manager_dashboard' %}">Панель менеджера</a>
+                    <a href="{% url 'reports:manager_orders' %}">Управление заказами</a>
                     <a href="{% url 'reports:manager_stats' %}">Статистика</a>
                     <a href="{% url 'reports:manager_reviews' %}">Отзывы</a>
                     {% endif %}
@@ -24,6 +45,9 @@
                     <a href="{% url 'admin_tools:maintenance' %}">Резервные копии</a>
                     {% endif %}
                     <a href="{% url 'accounts:profile' %}">Профиль</a>
+                    {% if request.user.is_authenticated %}
+                    <button type="button" class="btn-link" id="site-theme-toggle">Тёмная тема</button>
+                    {% endif %}
                 {% else %}
                     <a href="{% url 'catalog_list' %}">Каталог</a>
                     {% if request.user.is_authenticated %}
@@ -115,6 +139,7 @@
             ordersUrl: {% if request.user.is_authenticated %}"{% url 'orders:order_history' %}"{% else %}null{% endif %},
             profileUrl: {% if request.user.is_authenticated %}"{% url 'accounts:profile' %}"{% else %}null{% endif %},
             managerUrl: {% if is_manager %}"{% url 'reports:manager_dashboard' %}"{% else %}null{% endif %},
+            managerOrdersUrl: {% if is_manager %}"{% url 'reports:manager_orders' %}"{% else %}null{% endif %},
             managerStatsUrl: {% if is_manager %}"{% url 'reports:manager_stats' %}"{% else %}null{% endif %},
             managerReviewsUrl: {% if is_manager %}"{% url 'reports:manager_reviews' %}"{% else %}null{% endif %},
             backupUrl: {% if request.user.is_staff %}"{% url 'admin_tools:maintenance' %}"{% else %}null{% endif %},
@@ -123,6 +148,39 @@
     </script>
     <script src="{% static 'catalog/ui.js' %}" defer></script>
     <script src="{% static 'catalog/hotkeys.js' %}" defer></script>
+    {% if request.user.is_authenticated %}
+    <script>
+      (function(){
+        function getCookie(name){
+          var m=document.cookie.match('(?:^|; )'+name.replace(/([.$?*|{}()\[\]\\\/\+^])/g,'\\$1')+'=([^;]*)');
+          return m?decodeURIComponent(m[1]):'';
+        }
+        var btn=document.getElementById('site-theme-toggle');
+        if(!btn) return;
+        var root=document.documentElement;
+        function isDark(){ return root.classList.contains('pref-theme-dark') || root.dataset.theme==='dark'; }
+        function apply(t){
+          var dark=t==='dark';
+          root.classList.toggle('pref-theme-dark', dark);
+          root.dataset.theme = t;
+          if (document.body) document.body.classList.toggle('pref-theme-dark', dark);
+          btn.textContent = dark ? 'Светлая тема' : 'Тёмная тема';
+        }
+        // initial label
+        apply(isDark() ? 'dark' : 'light');
+        btn.addEventListener('click', function(){
+          var next=isDark()?'light':'dark';
+          apply(next);
+          // persist to profile
+          fetch('{% url "accounts:update_theme" %}',{
+            method:'POST',
+            headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
+            body:'theme='+encodeURIComponent(next)
+          }).catch(function(){});
+        });
+      })();
+    </script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

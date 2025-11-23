@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Обработка заказов — Менеджер{% endblock %}
+{% block content %}
+<section class="profile-section">
+  <div class="section-head">
+    <h2>Обработка заказов</h2>
+    <span class="muted">Список + фильтры</span>
+  </div>
+
+  <form method="get" class="profile-form" style="margin-bottom:1rem">
+    <div class="form-grid">
+      <label>
+        <span>ID заказа</span>
+        <input type="number" name="order_id" value="{{ filters.order_id }}" />
+      </label>
+      <label>
+        <span>Клиент (email/логин)</span>
+        <input type="text" name="client" value="{{ filters.client }}" />
+      </label>
+      <label>
+        <span>Статус</span>
+        <select name="status">
+          <option value="">— любой —</option>
+          {% for st in statuses %}
+            <option value="{{ st.status_id }}" {% if filters.status == st.status_id|stringformat:'s' %}selected{% endif %}>{{ st.name_status }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>С даты</span>
+        <input type="date" name="from" value="{{ filters.from }}" />
+      </label>
+      <label>
+        <span>По дату</span>
+        <input type="date" name="to" value="{{ filters.to }}" />
+      </label>
+    </div>
+    <button class="btn-primary" type="submit">Применить</button>
+  </form>
+
+  <div class="orders-list">
+    {% if orders %}
+      <table class="module" style="width:100%">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Дата</th>
+            <th>Клиент</th>
+            <th>Магазин</th>
+            <th>Статус</th>
+            <th>Итого</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for o in orders %}
+          <tr>
+            <td>#{{ o.order_id }}</td>
+            <td>{{ o.created_at }}</td>
+            <td>{{ o.user.username|default:o.user.email }}</td>
+            <td>{{ o.store.name|default:"—" }}</td>
+            <td>{{ o.status.name_status|default:"—" }}</td>
+            <td>{{ o.total_amount }}</td>
+            <td><a class="btn-link" href="{% url 'reports:manager_order_detail' o.order_id %}">Открыть</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Заказы не найдены.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
