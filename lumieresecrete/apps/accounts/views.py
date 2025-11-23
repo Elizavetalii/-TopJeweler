@@ -175,7 +175,8 @@ class PasswordResetViewSafe(PasswordResetView):
     """
     template_name = 'accounts/password_reset_form.html'
     email_template_name = 'accounts/password_reset_email.txt'
-    html_email_template_name = 'accounts/password_reset_email.html'
+    # Отправляем только текстовое письмо, чтобы исключить отображение HTML-кода
+    html_email_template_name = None
     subject_template_name = 'accounts/password_reset_subject.txt'
     success_url = reverse_lazy('accounts:password_reset_done')
 
@@ -183,7 +184,6 @@ class PasswordResetViewSafe(PasswordResetView):
         form.save(
             use_https=self.request.is_secure(),
             email_template_name=self.email_template_name,
-            html_email_template_name=self.html_email_template_name,
             subject_template_name=self.subject_template_name,
             request=self.request,
             from_email=None,
